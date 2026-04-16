@@ -1,0 +1,921 @@
+# --- Dashboard HTML and server ---
+function Get-DashboardHtml {
+
+	$dashboardPath = Join-Path $scriptRoot "web\dashboard.html"
+	$loginPath = Join-Path $scriptRoot "web\login.html"
+
+	$html = Get-Content -Path $dashboardPath -Raw -Encoding UTF8
+	$loginPage = Get-Content -Path $loginPath -Raw -Encoding UTF8
+
+    $html = $html.Replace('__AUTH_USER__', $authUser)
+	$html = $html.Replace('__AUTH_PASS__', $authPass)
+
+	return @{
+        Html  = $html.Replace('__DASHBOARD_TITLE__', $dashboardTitle)
+        Login = $loginPage
+    }
+}
+
+function Ensure-DashboardRedirectFile {
+    $target = if ($dashboardHost -eq "*") { "http://localhost:$dashboardPort/" } else { "http://$dashboardHost`:$dashboardPort/" }
+@"
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="refresh" content="0; url=$target">
+<title>$dashboardTitle</title>
+</head>
+<body>
+Opening <a href="$target">$target</a>
+</body>
+</html>
+"@ | Set-Content -Path $dashboardHtmlPath -Encoding UTF8
+}
+
+function Start-Dashboard {
+    $jobName = "SourceDedicatedWatchdogDashboard"
+
+    $existing = Get-Job -Name $jobName -ErrorAction SilentlyContinue
+    if ($existing) {
+        try {
+            if ($existing.State -eq "Running") {
+                Write-Log "Dashboard job already running"
+                return
+            } else {
+                Remove-Job -Name $jobName -Force -ErrorAction SilentlyContinue
+            }
+        } catch {
+        }
+    }
+
+    $dashboardData = Get-DashboardHtml
+	$dashboardHtml = $dashboardData.Html
+	$loginPage = $dashboardData.Login
+
+    Start-Job -Name $jobName `
+        -ArgumentList $dashboardPort, $statusFile, $historyFile, $playersFile, $logoPath, $onIconPath, $offIconPath, $dashboardTitle, $commandQueueFile, $dashboardHtml, $loginPage, $allowRemote, $servers `
+        -ScriptBlock {
+            param($port, $statusPath, $historyPath, $playersPath, $logoPath, $onIconPath, $offIconPath, $title, $queuePath, $dashboardHtml, $loginPage, $initialAllowRemote, $servers)
+
+            $allowRemote = [bool]$initialAllowRemote
+			$authToken = [guid]::NewGuid().ToString()
+
+            $listener = New-Object System.Net.HttpListener
+            $listener.Prefixes.Add("http://+:$port/")
+
+            function Write-WidgetResponse {
+                param(
+                    [Parameter(Mandatory = $true)] $Response,
+                    [Parameter(Mandatory = $true)][int] $StatusCode,
+                    [Parameter(Mandatory = $true)][string] $ContentType,
+                    [Parameter(Mandatory = $true)][string] $Body
+                )
+
+                $bytes = [System.Text.Encoding]::UTF8.GetBytes($Body)
+                $Response.StatusCode = $StatusCode
+                $Response.ContentType = $ContentType
+                try { $Response.Headers.Add("X-Content-Type-Options", "nosniff") } catch {}
+                $Response.OutputStream.Write($bytes, 0, $bytes.Length)
+                $Response.OutputStream.Close()
+            }
+
+            try {
+                $listener.Start()
+                Write-Output "Dashboard listener started OK"
+            } catch {
+                Write-Output "Dashboard failed: $($_.Exception.Message)"
+                return
+            }
+
+            try {
+                while ($listener.IsListening) {
+
+                    try {
+                        $ctx = $listener.GetContext()
+                    } catch {
+                        Write-Output "Dashboard GetContext error: $($_.Exception.Message)"
+                        Start-Sleep -Milliseconds 250
+                        continue
+                    }
+
+                    if ($null -eq $ctx) {
+                        Start-Sleep -Milliseconds 100
+                        continue
+                    }
+
+                    $req = $ctx.Request
+                    $res = $ctx.Response
+
+                    try {
+                        $remoteIP = $req.RemoteEndPoint.Address.ToString()
+                    } catch {
+                        $remoteIP = ""
+                    }
+
+                    try {
+                        $path = $req.Url.AbsolutePath.ToLowerInvariant()
+                    } catch {
+                        $path = "/"
+                    }
+                    # --- PUBLIC WIDGET ROUTES (READ-ONLY) ---
+                    if ($path -match "^/widget/api/([a-zA-Z0-9_-]{1,64})$") {
+                        if ($req.HttpMethod -ne "GET") {
+                            Write-WidgetResponse -Response $res -StatusCode 405 -ContentType "text/plain; charset=utf-8" -Body "Method Not Allowed"
+                            continue
+                        }
+
+                        $serverName = $Matches[1].ToLowerInvariant()
+                        $allowedServers = @($servers | ForEach-Object { $_.Name.ToLowerInvariant() })
+
+                        if ($allowedServers -notcontains $serverName) {
+                            Write-WidgetResponse -Response $res -StatusCode 404 -ContentType "text/plain; charset=utf-8" -Body "Not Found"
+                            continue
+                        }
+
+                        $statusData = @()
+                        if (Test-Path $statusPath) {
+                            try {
+                                $rawStatus = Get-Content -Path $statusPath -Raw
+                                if (-not [string]::IsNullOrWhiteSpace($rawStatus)) {
+                                    $statusData = $rawStatus | ConvertFrom-Json
+                                }
+                            } catch {
+                                $statusData = @()
+                            }
+                        }
+
+                        $playersData = @()
+                        if (Test-Path $playersPath) {
+                            try {
+                                $rawPlayers = Get-Content -Path $playersPath -Raw
+                                if (-not [string]::IsNullOrWhiteSpace($rawPlayers)) {
+                                    $playersData = $rawPlayers | ConvertFrom-Json
+                                }
+                            } catch {
+                                $playersData = @()
+                            }
+                        }
+
+                        $server = $statusData | Where-Object { $_.Name -and $_.Name.ToLowerInvariant() -eq $serverName } | Select-Object -First 1
+                        if (-not $server) {
+                            Write-WidgetResponse -Response $res -StatusCode 404 -ContentType "text/plain; charset=utf-8" -Body "Not Found"
+                            continue
+                        }
+
+                        $playerEntry = $playersData | Where-Object { $_.Server -and $_.Server.ToLowerInvariant() -eq $serverName } | Select-Object -First 1
+                        $onlinePlayers = @()
+                        if ($playerEntry -and $playerEntry.Enabled -and $playerEntry.Players) {
+                            $onlinePlayers = @($playerEntry.Players | Select-Object -First 10 | ForEach-Object {
+                                @{
+                                    name      = $_.Name
+                                    steamId   = $_.SteamId
+                                    connected = $_.Connected
+                                    ping      = $_.Ping
+                                    loss      = $_.Loss
+                                }
+                            })
+                        }
+
+$ip = ""
+$port = ""
+
+if ($server.UdpIp -match "(.+):(\d+)$") {
+    $ip = $matches[1]
+    $port = $matches[2]
+}
+
+$safe = @{
+    name          = $server.Name
+    hostname      = $server.Hostname
+    status        = $server.Status
+    map           = $server.Map
+    players       = $server.PlayersInfo
+    updated       = $server.UpdatedAt
+    ip            = $ip
+    port          = $port
+    onlinePlayers = $onlinePlayers
+}
+
+                        Write-WidgetResponse -Response $res -StatusCode 200 -ContentType "application/json; charset=utf-8" -Body (($safe | ConvertTo-Json -Depth 6))
+                        continue
+                    }
+
+                    if ($path -match "^/widget/builder/([a-zA-Z0-9_-]{1,64})$") {
+                        if ($req.HttpMethod -ne "GET") {
+                            Write-WidgetResponse -Response $res -StatusCode 405 -ContentType "text/plain; charset=utf-8" -Body "Method Not Allowed"
+                            continue
+                        }
+
+                        $serverName = $Matches[1].ToLowerInvariant()
+                        $allowedServers = @($servers | ForEach-Object { $_.Name.ToLowerInvariant() })
+
+                        if ($allowedServers -notcontains $serverName) {
+                            Write-WidgetResponse -Response $res -StatusCode 404 -ContentType "text/plain; charset=utf-8" -Body "Not Found"
+                            continue
+                        }
+
+                        $builderHtml = @"
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Widget Builder - $serverName</title>
+<style>
+body{margin:0;background:#101215;color:#d7dbe0;font-family:Arial,Helvetica,sans-serif}
+.page{display:grid;grid-template-columns:360px 1fr;gap:16px;min-height:100vh;padding:16px;box-sizing:border-box}
+.panel,.preview{background:#171b20;border:1px solid #2a313a;border-radius:10px;padding:14px;box-sizing:border-box}
+h1,h2{margin:0 0 12px 0;font-size:18px}
+.group{margin-bottom:12px}
+label{display:block;font-size:12px;color:#aeb6bf;margin-bottom:4px}
+input[type="text"],input[type="number"],select,textarea{width:100%;box-sizing:border-box;background:#0f1317;color:#eef2f6;border:1px solid #2d3640;border-radius:6px;padding:8px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;align-items:center;gap:8px;padding-top:8px}
+button{background:#2e7dff;color:#fff;border:0;border-radius:6px;padding:10px 12px;cursor:pointer}
+button.secondary{background:#2b3138}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+iframe{border:0;background:#000;border-radius:8px;display:block}
+.small{font-size:12px;color:#aeb6bf}
+#embedCode{height:120px}
+</style>
+</head>
+<body>
+<div class="page">
+    <div class="panel">
+        <h1>Widget Builder</h1>
+        <div class="small" style="margin-bottom:12px;">Server: $serverName</div>
+
+        <div class="group">
+            <label for="theme">Theme</label>
+            <select id="theme">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="orange">Orange</option>
+                <option value="green">Green</option>
+                <option value="custom">Custom</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="group">
+                <label for="bgColor">Background Color</label>
+                <input id="bgColor" type="text" value="111111" maxlength="6">
+            </div>
+            <div class="group">
+                <label for="fontColor">Font Color</label>
+                <input id="fontColor" type="text" value="dddddd" maxlength="6">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="group">
+                <label for="titleBgColor">Title Background</label>
+                <input id="titleBgColor" type="text" value="111111" maxlength="6">
+            </div>
+            <div class="group">
+                <label for="titleColor">Title Color</label>
+                <input id="titleColor" type="text" value="ffffff" maxlength="6">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="group">
+                <label for="borderColor">Border Color</label>
+                <input id="borderColor" type="text" value="333333" maxlength="6">
+            </div>
+            <div class="group">
+                <label for="linkColor">Link/Accent Color</label>
+                <input id="linkColor" type="text" value="57d957" maxlength="6">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="group">
+                <label for="borderStyle">Border Style</label>
+                <select id="borderStyle">
+                    <option value="solid">Solid</option>
+                    <option value="double">Double</option>
+                    <option value="minimal">Minimal</option>
+                </select>
+            </div>
+            <div class="group">
+                <label for="fontSize">Font Size</label>
+                <input id="fontSize" type="number" value="12" min="10" max="18">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="group">
+                <label for="width">Width (min 144)</label>
+                <input id="width" type="number" value="260" min="144">
+            </div>
+            <div class="group">
+                <label for="playerHeight">Player List Height (min 100)</label>
+                <input id="playerHeight" type="number" value="180" min="100">
+            </div>
+        </div>
+
+        <div class="check"><input id="showPlayers" type="checkbox" checked> <label for="showPlayers" style="margin:0;">Show online players</label></div>
+        <div class="check"><input id="autoHeight" type="checkbox" checked> <label for="autoHeight" style="margin:0;">Auto-calculate iframe height</label></div>
+
+        <div class="actions" style="margin-top:14px;">
+            <button id="refreshBtn" type="button">Refresh Preview</button>
+            <button id="copyBtn" class="secondary" type="button">Copy Embed Code</button>
+        </div>
+
+        <div class="group" style="margin-top:14px;">
+            <label for="embedCode">Embed Code</label>
+            <textarea id="embedCode" readonly></textarea>
+        </div>
+    </div>
+
+    <div class="preview">
+        <h2>Preview</h2>
+        <div class="small" id="heightInfo" style="margin-bottom:12px;"></div>
+        <iframe id="previewFrame" src="/widget/$serverName" width="260" height="420" scrolling="no"></iframe>
+    </div>
+</div>
+
+<script>
+(function(){
+    const presets = {
+        dark:   { bgColor:'111111', fontColor:'dddddd', titleBgColor:'111111', titleColor:'ffffff', borderColor:'333333', linkColor:'57d957', borderStyle:'solid', fontSize:'12' },
+        light:  { bgColor:'f3f5f7', fontColor:'1e2328', titleBgColor:'e7ebef', titleColor:'111111', borderColor:'c7d0d9', linkColor:'2e7dff', borderStyle:'solid', fontSize:'12' },
+        orange: { bgColor:'1a1310', fontColor:'f4d8c8', titleBgColor:'241712', titleColor:'ffb26b', borderColor:'5d3a2a', linkColor:'ff8c42', borderStyle:'double', fontSize:'12' },
+        green:  { bgColor:'0f1712', fontColor:'d8f0df', titleBgColor:'132118', titleColor:'8ef0a4', borderColor:'29543a', linkColor:'5de07f', borderStyle:'solid', fontSize:'12' }
+    };
+
+    const ids = ['theme','bgColor','fontColor','titleBgColor','titleColor','borderColor','linkColor','borderStyle','fontSize','width','playerHeight','showPlayers','autoHeight'];
+    const el = {};
+    ids.forEach(id => el[id] = document.getElementById(id));
+    const previewFrame = document.getElementById('previewFrame');
+    const embedCode = document.getElementById('embedCode');
+    const heightInfo = document.getElementById('heightInfo');
+
+    function hex(v, fallback){
+        return /^[0-9a-fA-F]{6}$/.test(v || '') ? v : fallback;
+    }
+    function intVal(v, fallback, min, max){
+        const n = parseInt(v,10);
+        if (isNaN(n)) return fallback;
+        return Math.max(min, Math.min(max, n));
+    }
+    function applyTheme(){
+        const theme = el.theme.value;
+        if (theme !== 'custom' && presets[theme]){
+            const p = presets[theme];
+            el.bgColor.value = p.bgColor;
+            el.fontColor.value = p.fontColor;
+            el.titleBgColor.value = p.titleBgColor;
+            el.titleColor.value = p.titleColor;
+            el.borderColor.value = p.borderColor;
+            el.linkColor.value = p.linkColor;
+            el.borderStyle.value = p.borderStyle;
+            el.fontSize.value = p.fontSize;
+        }
+        render();
+    }
+    function buildQuery(){
+        const width = intVal(el.width.value, 260, 144, 1200);
+        const playerHeight = intVal(el.playerHeight.value, 180, 100, 800);
+        const showPlayers = el.showPlayers.checked ? '1' : '0';
+
+        const params = new URLSearchParams();
+        params.set('theme', el.theme.value);
+        params.set('bgColor', hex(el.bgColor.value, '111111'));
+        params.set('fontColor', hex(el.fontColor.value, 'dddddd'));
+        params.set('titleBgColor', hex(el.titleBgColor.value, '111111'));
+        params.set('titleColor', hex(el.titleColor.value, 'ffffff'));
+        params.set('borderColor', hex(el.borderColor.value, '333333'));
+        params.set('linkColor', hex(el.linkColor.value, '57d957'));
+        params.set('borderStyle', ['solid','double','minimal'].includes(el.borderStyle.value) ? el.borderStyle.value : 'solid');
+        params.set('fontSize', intVal(el.fontSize.value, 12, 10, 18));
+        params.set('width', width);
+        params.set('playerHeight', playerHeight);
+        params.set('showPlayers', showPlayers);
+        return params.toString();
+    }
+    function calculateHeight(){
+        const fontSize = intVal(el.fontSize.value, 12, 10, 18);
+        const playerHeight = intVal(el.playerHeight.value, 180, 100, 800);
+        let total = 138 + Math.round((fontSize - 12) * 8);
+        if (el.showPlayers.checked){
+            total += playerHeight + 14;
+        } else {
+            total += 26;
+        }
+        return total;
+    }
+    function render(){
+        const width = intVal(el.width.value, 260, 144, 1200);
+        const qs = buildQuery();
+        const serverName = "$serverName";
+const src = '/widget/' + serverName + '?' + qs;
+        const height = el.autoHeight.checked ? calculateHeight() : 420;
+
+        previewFrame.width = width;
+        previewFrame.height = height;
+        previewFrame.src = src;
+        heightInfo.textContent = 'Suggested iframe height: ' + height + 'px';
+        embedCode.value = '<iframe src="' + window.location.origin + src + '" frameborder="0" scrolling="no" width="' + width + '" height="' + height + '"></iframe>';
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', render);
+    document.getElementById('copyBtn').addEventListener('click', async function(){
+        try { await navigator.clipboard.writeText(embedCode.value); } catch(e) {}
+    });
+    el.theme.addEventListener('change', applyTheme);
+    ids.filter(id => id !== 'theme').forEach(id => el[id].addEventListener('input', render));
+    ids.filter(id => id !== 'theme').forEach(id => el[id].addEventListener('change', render));
+
+    applyTheme();
+})();
+</script>
+</body>
+</html>
+"@
+
+                        Write-WidgetResponse -Response $res -StatusCode 200 -ContentType "text/html; charset=utf-8" -Body $builderHtml
+                        continue
+                    }
+
+                    if ($path -match "^/widget/([a-zA-Z0-9_-]{1,64})$") {
+                        if ($req.HttpMethod -ne "GET") {
+                            Write-WidgetResponse -Response $res -StatusCode 405 -ContentType "text/plain; charset=utf-8" -Body "Method Not Allowed"
+                            continue
+                        }
+
+                        $serverName = $Matches[1].ToLowerInvariant()
+                        $allowedServers = @($servers | ForEach-Object { $_.Name.ToLowerInvariant() })
+
+                        if ($allowedServers -notcontains $serverName) {
+                            Write-WidgetResponse -Response $res -StatusCode 404 -ContentType "text/plain; charset=utf-8" -Body "Not Found"
+                            continue
+                        }
+
+                        function Get-SafeInt {
+                            param($Value, [int]$Default, [int]$Min, [int]$Max)
+                            try {
+                                $n = [int]$Value
+                            } catch {
+                                return $Default
+                            }
+                            if ($n -lt $Min) { return $Min }
+                            if ($n -gt $Max) { return $Max }
+                            return $n
+                        }
+
+                        function Get-SafeBool {
+                            param($Value, [bool]$Default)
+                            if ($null -eq $Value -or $Value -eq "") { return $Default }
+                            return ($Value -eq "1" -or $Value.ToString().ToLowerInvariant() -eq "true")
+                        }
+
+                        function Get-SafeHex {
+                            param($Value, [string]$Default)
+                            if ($null -ne $Value -and $Value.ToString() -match '^[0-9a-fA-F]{6}$') {
+                                return $Value.ToLowerInvariant()
+                            }
+                            return $Default
+                        }
+
+                        function Get-SafeEnum {
+                            param($Value, [string[]]$Allowed, [string]$Default)
+                            if ($null -eq $Value) { return $Default }
+                            $v = $Value.ToString().ToLowerInvariant()
+                            if ($Allowed -contains $v) { return $v }
+                            return $Default
+                        }
+
+                        $qs = $req.QueryString
+
+                        $theme = Get-SafeEnum -Value $qs["theme"] -Allowed @("dark","light","orange","green","custom") -Default "dark"
+
+                        switch ($theme) {
+                            "light" {
+                                $defaultBgColor = "f3f5f7"
+                                $defaultFontColor = "1e2328"
+                                $defaultTitleBgColor = "e7ebef"
+                                $defaultTitleColor = "111111"
+                                $defaultBorderColor = "c7d0d9"
+                                $defaultLinkColor = "2e7dff"
+                                $defaultBorderStyle = "solid"
+                            }
+                            "orange" {
+                                $defaultBgColor = "1a1310"
+                                $defaultFontColor = "f4d8c8"
+                                $defaultTitleBgColor = "241712"
+                                $defaultTitleColor = "ffb26b"
+                                $defaultBorderColor = "5d3a2a"
+                                $defaultLinkColor = "ff8c42"
+                                $defaultBorderStyle = "double"
+                            }
+                            "green" {
+                                $defaultBgColor = "0f1712"
+                                $defaultFontColor = "d8f0df"
+                                $defaultTitleBgColor = "132118"
+                                $defaultTitleColor = "8ef0a4"
+                                $defaultBorderColor = "29543a"
+                                $defaultLinkColor = "5de07f"
+                                $defaultBorderStyle = "solid"
+                            }
+                            default {
+                                $defaultBgColor = "111111"
+                                $defaultFontColor = "dddddd"
+                                $defaultTitleBgColor = "111111"
+                                $defaultTitleColor = "ffffff"
+                                $defaultBorderColor = "333333"
+                                $defaultLinkColor = "57d957"
+                                $defaultBorderStyle = "solid"
+                            }
+                        }
+
+                        $bgColor = Get-SafeHex -Value $qs["bgColor"] -Default $defaultBgColor
+                        $fontColor = Get-SafeHex -Value $qs["fontColor"] -Default $defaultFontColor
+                        $titleBgColor = Get-SafeHex -Value $qs["titleBgColor"] -Default $defaultTitleBgColor
+                        $titleColor = Get-SafeHex -Value $qs["titleColor"] -Default $defaultTitleColor
+                        $borderColor = Get-SafeHex -Value $qs["borderColor"] -Default $defaultBorderColor
+                        $linkColor = Get-SafeHex -Value $qs["linkColor"] -Default $defaultLinkColor
+                        $borderStyle = Get-SafeEnum -Value $qs["borderStyle"] -Allowed @("solid","double","minimal") -Default $defaultBorderStyle
+
+                        $width = Get-SafeInt -Value $qs["width"] -Default 260 -Min 144 -Max 1200
+                        $fontSize = Get-SafeInt -Value $qs["fontSize"] -Default 12 -Min 10 -Max 18
+                        $playerHeight = Get-SafeInt -Value $qs["playerHeight"] -Default 180 -Min 100 -Max 800
+                        $showPlayers = Get-SafeBool -Value $qs["showPlayers"] -Default $true
+                        $showPlayersJs = if ($showPlayers) { "true" } else { "false" }
+
+                        $widgetHtml = @"
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=$width, initial-scale=1">
+<title>Server Widget - $serverName</title>
+<style>
+html,body{margin:0;padding:0;background:#$bgColor;color:#$fontColor;font-family:Arial,Helvetica,sans-serif;font-size:${fontSize}px}
+body{overflow:hidden}
+.wrap{width:${width}px;padding:10px;border:1px $(if ($borderStyle -eq "minimal") { "solid" } else { $borderStyle }) #$borderColor;background:#$bgColor;box-sizing:border-box}
+.title{font-size:$([int]($fontSize + 2))px;font-weight:700;color:#$titleColor;background:#$titleBgColor;margin:-10px -10px 8px -10px;padding:10px;border-bottom:1px solid #$borderColor}
+.status{margin-bottom:6px}
+.online{color:#$linkColor;font-weight:700}
+.offline{color:#ff6666;font-weight:700}
+.meta{line-height:1.45;word-wrap:break-word}
+.players{margin-top:8px;max-height:${playerHeight}px;overflow-y:auto;border-top:1px solid #$borderColor;padding-top:8px}
+.player{padding:4px 0;border-bottom:1px solid #$borderColor}
+.small{font-size:$([Math]::Max($fontSize-1,10))px;color:#$fontColor;opacity:0.85}
+.error{color:#ff6666}
+a{color:#$linkColor}
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="title">$serverName</div>
+    <div id="content">Loading...</div>
+</div>
+<script>
+async function load(){
+    try{
+        const serverName = "$serverName";
+        const showPlayers = $showPlayersJs;
+        const res = await fetch('/widget/api/' + serverName + '?ts=' + Date.now(), { cache: 'no-store' });
+
+        const root = document.getElementById('content');
+        if(!root){ return; }
+
+        if(res.status !== 200){
+            root.innerHTML = '<div class="error">API Error</div>';
+            return;
+        }
+
+        const data = await res.json();
+        const isOnline = String(data.status || '').toUpperCase() === 'ONLINE';
+        const players = Array.isArray(data.onlinePlayers) ? data.onlinePlayers : [];
+
+        let html = '';
+        html += '<div class="status ' + (isOnline ? 'online' : 'offline') + '">' + (data.status || 'UNKNOWN') + '</div>';
+html += '<div class="meta">';
+
+html += 'Hostname: ' + (data.hostname || '') + '<br>';
+
+// (IP + PORT)
+html += 'Address: ' + ((data.ip || '') + ':' + (data.port || '')) + '<br>';
+
+html += 'Map: ' + (data.map || '') + '<br>';
+        html += 'Players: ' + (data.players || '') + '<br>';
+        html += 'Updated: ' + (data.updated || '');
+        html += '</div>';
+
+        if(showPlayers){
+            if(players.length > 0){
+                html += '<div class="players">';
+                for(let i=0;i<players.length;i++){
+                    const p = players[i] || {};
+                    html += '<div class="player">';
+                    html += '<div>' + (p.name || '') + '</div>';
+                    html += '<div class="small">Ping: ' + (p.ping || '') + ' | Connected: ' + (p.connected || '') + '</div>';
+                    html += '</div>';
+                }
+                html += '</div>';
+            } else {
+                html += '<div class="small" style="margin-top:8px;">No players connected</div>';
+            }
+        }
+
+        root.innerHTML = html;
+    }catch(e){
+        const root = document.getElementById('content');
+        if(root){ root.innerHTML = '<div class="error">JS Error</div>'; }
+    }
+}
+window.addEventListener('DOMContentLoaded', function(){
+    load();
+    setInterval(load, 10000);
+});
+</script>
+</body>
+</html>
+"@
+
+                        Write-WidgetResponse -Response $res -StatusCode 200 -ContentType "text/html; charset=utf-8" -Body $widgetHtml
+                        continue
+                    }
+
+# --- AUTH / REMOTE CONTROL ---
+# --- AUTH / REMOTE CONTROL ---
+$cookie = $req.Headers["Cookie"]
+
+$isLocal = ($remoteIP -eq "127.0.0.1" -or $remoteIP -eq "::1")
+$isAuthed = ($cookie -match "auth=$authToken")
+
+# BLOCK REMOTE COMPLETELY IF DISABLED
+if (-not $allowRemote -and -not $isLocal) {
+    $res.StatusCode = 403
+    $res.OutputStream.Close()
+    continue
+}
+
+# FORCE LOGIN FOR ANY REMOTE REQUEST
+if (-not $isLocal) {
+
+    # Allow login + widget endpoints without auth
+    if (
+        $path -ne "/api/login" -and
+        $path -notlike "/widget*"
+    ) {
+
+        if (-not $isAuthed) {
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($loginPage)
+            $res.ContentType = "text/html"
+            $res.OutputStream.Write($bytes,0,$bytes.Length)
+            $res.OutputStream.Close()
+            continue
+        }
+    }
+}
+
+# block if remote disabled
+if ($path -ne "/api/toggle-remote" -and $path -ne "/api/remote-status") {
+    if (-not $allowRemote -and -not $isLocal) {
+        $res.StatusCode = 403
+        $res.OutputStream.Close()
+        continue
+    }
+}
+
+                    try {
+                        switch ($path) {
+                            "/" {
+                                $bytes = [System.Text.Encoding]::UTF8.GetBytes($dashboardHtml)
+                                $res.ContentType = "text/html; charset=utf-8"
+                                $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                            }
+                            "/api/status" {
+                                $json = if (Test-Path $statusPath) {
+                                    $raw = Get-Content -Path $statusPath -Raw
+                                    if ([string]::IsNullOrWhiteSpace($raw)) { "[]" } else { $raw }
+                                } else { "[]" }
+
+                                $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+                                $res.ContentType = "application/json; charset=utf-8"
+                                $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                            }
+							"/api/set-vgui" {
+							if ($req.HttpMethod -ne "POST") {
+								$res.StatusCode = 405
+							} else {
+								$reader = New-Object System.IO.StreamReader($req.InputStream, $req.ContentEncoding)
+								$body = $reader.ReadToEnd()
+								$reader.Close()
+
+							Add-Content -Path $queuePath -Value $body
+
+								$bytes = [System.Text.Encoding]::UTF8.GetBytes('{"ok":true}')
+								$res.ContentType = "application/json; charset=utf-8"
+								$res.OutputStream.Write($bytes, 0, $bytes.Length)
+								}
+							}
+                            "/api/history" {
+                                $json = if (Test-Path $historyPath) {
+                                    $raw = Get-Content -Path $historyPath -Raw
+                                    if ([string]::IsNullOrWhiteSpace($raw)) { "[]" } else { $raw }
+                                } else { "[]" }
+
+                                $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+                                $res.ContentType = "application/json; charset=utf-8"
+                                $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                            }
+                            "/api/players" {
+                                $json = if (Test-Path $playersPath) {
+                                    $raw = Get-Content -Path $playersPath -Raw
+                                    if ([string]::IsNullOrWhiteSpace($raw)) { "[]" } else { $raw }
+                                } else { "[]" }
+
+                                $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+                                $res.ContentType = "application/json; charset=utf-8"
+                                $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                            }
+                            "/api/action" {
+                                if ($req.HttpMethod -ne "POST") {
+                                    $res.StatusCode = 405
+                                } else {
+                                    $reader = New-Object System.IO.StreamReader($req.InputStream, $req.ContentEncoding)
+                                    $body = $reader.ReadToEnd()
+                                    $reader.Close()
+
+                                    Add-Content -Path $queuePath -Value $body
+                                    $bytes = [System.Text.Encoding]::UTF8.GetBytes('{"ok":true}')
+                                    $res.ContentType = "application/json; charset=utf-8"
+                                    $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                                }
+                            }
+							"/api/login" {
+    if ($req.HttpMethod -ne "POST") {
+        $res.StatusCode = 405
+    } else {
+        $reader = New-Object System.IO.StreamReader($req.InputStream)
+        $body = $reader.ReadToEnd()
+        $reader.Close()
+
+        try {
+            $obj = $body | ConvertFrom-Json
+
+            function Get-Hash {
+                param([string]$text)
+                $sha = [System.Security.Cryptography.SHA256]::Create()
+                $bytes = [System.Text.Encoding]::UTF8.GetBytes($text)
+                $hash = $sha.ComputeHash($bytes)
+                return ([BitConverter]::ToString($hash) -replace "-","").ToLower()
+            }
+
+            $uHash = Get-Hash $obj.user
+            $pHash = Get-Hash $obj.pass
+
+            # LOAD CURRENT AUTH FROM FILE (LIVE)
+try {
+    $authData = Get-Content -Path $using:authFile -Raw | ConvertFrom-Json
+    $currentUser = $authData.user
+    $currentPass = $authData.pass
+} catch {
+    $currentUser = "watchd0g"
+    $currentPass = "admin123"
+}
+
+$currentUserHash = Get-Hash $currentUser
+$currentPassHash = Get-Hash $currentPass
+
+if ($uHash -eq $currentUserHash -and $pHash -eq $currentPassHash) {
+
+                $res.Headers.Add("Set-Cookie","auth=$authToken; Path=/; HttpOnly; SameSite=Strict")
+                $bytes = [System.Text.Encoding]::UTF8.GetBytes('{"ok":true}')
+                $res.OutputStream.Write($bytes,0,$bytes.Length)
+
+            } else {
+                $res.StatusCode = 403
+            }
+
+        } catch {
+            $res.StatusCode = 500
+        }
+    }
+}
+"/api/logout" {
+    # rotate token -> invalidates ALL sessions
+    $authToken = [guid]::NewGuid().ToString()
+
+    # clear cookie
+    $res.Headers.Add("Set-Cookie","auth=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT")
+
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes('{"ok":true}')
+    $res.OutputStream.Write($bytes,0,$bytes.Length)
+}
+"/api/set-auth" {
+    if ($req.HttpMethod -ne "POST") {
+        $res.StatusCode = 405
+    } else {
+        $reader = New-Object System.IO.StreamReader($req.InputStream)
+        $body = $reader.ReadToEnd()
+        $reader.Close()
+
+        try {
+            $obj = $body | ConvertFrom-Json
+
+            if ($obj.user.Length -le 8 -and $obj.pass.Length -le 8) {
+
+                $newAuth = @{
+                    user = $obj.user
+                    pass = $obj.pass
+                }
+
+                # SAVE NEW CREDS
+                $newAuth | ConvertTo-Json | Set-Content -Path $using:authFile -Encoding UTF8
+
+                # CRITICAL: ROTATE TOKEN HERE
+                $authToken = [guid]::NewGuid().ToString()
+				# AFTER saving file
+				Start-Sleep -Milliseconds 100
+                $bytes = [System.Text.Encoding]::UTF8.GetBytes('{"ok":true}')
+                $res.OutputStream.Write($bytes,0,$bytes.Length)
+
+            } else {
+                $res.StatusCode = 400
+            }
+
+        } catch {
+            $res.StatusCode = 500
+        }
+    }
+}
+"/api/toggle-remote" {
+    $allowRemote = -not $allowRemote
+
+    # rotate token when disabling remote
+    if (-not $allowRemote) {
+        $authToken = [guid]::NewGuid().ToString()
+    }
+
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes("{""remote"":$allowRemote}")
+    $res.ContentType = "application/json"
+    $res.OutputStream.Write($bytes, 0, $bytes.Length)
+}
+                            "/api/remote-status" {
+                                $bytes = [System.Text.Encoding]::UTF8.GetBytes("{""remote"":$($allowRemote.ToString().ToLower())}")
+                                $res.ContentType = "application/json; charset=utf-8"
+                                $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                            }
+                            "/logo.png" {
+                                if (Test-Path $logoPath) {
+                                    $bytes = [System.IO.File]::ReadAllBytes($logoPath)
+                                    $res.ContentType = "image/png"
+                                    $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                                } else {
+                                    $res.StatusCode = 404
+                                }
+                            }
+                            "/on.png" {
+                                if (Test-Path $onIconPath) {
+                                    $bytes = [System.IO.File]::ReadAllBytes($onIconPath)
+                                    $res.ContentType = "image/png"
+                                    $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                                } else {
+                                    $res.StatusCode = 404
+                                }
+                            }
+                            "/off.png" {
+                                if (Test-Path $offIconPath) {
+                                    $bytes = [System.IO.File]::ReadAllBytes($offIconPath)
+                                    $res.ContentType = "image/png"
+                                    $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                                } else {
+                                    $res.StatusCode = 404
+                                }
+                            }
+                            default {
+                                $res.StatusCode = 404
+                            }
+                        }
+                    } catch {
+                        $res.StatusCode = 500
+                    } finally {
+                        try { $res.OutputStream.Close() } catch {}
+                    }
+                }
+            } finally {
+                try { $listener.Stop() } catch {}
+                try { $listener.Close() } catch {}
+            }
+        } | Out-Null
+
+    Start-Sleep -Seconds 1
+
+    $job = Get-Job -Name $jobName -ErrorAction SilentlyContinue
+    if ($job -and $job.State -eq "Failed") {
+        try {
+            $details = Receive-Job -Name $jobName -Keep -ErrorAction SilentlyContinue | Out-String
+            Write-Log "Dashboard job failed: $details"
+        } catch {
+            Write-Log "Dashboard job failed."
+        }
+    } else {
+        Write-Log "Dashboard started on port $dashboardPort"
+    }
+}

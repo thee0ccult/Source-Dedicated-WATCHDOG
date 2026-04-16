@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "RZXjF9newiC5af12nHJzrsArrc+FRKQblc+BeZbs6Uxdiw1C0VkFHhZs4cVWHHHtXWteZoHVhUcGg8kzT/fNHA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\l0psi\\Desktop\\watchdog_exe\\watchdog\\watchdog\\watchdog.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\l0psi\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\6.0.12\\microsoft.netcore.app.runtime.win-x64.6.0.12.nupkg.sha512",
+    "C:\\Users\\l0psi\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\6.0.12\\microsoft.windowsdesktop.app.runtime.win-x64.6.0.12.nupkg.sha512",
+    "C:\\Users\\l0psi\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\6.0.12\\microsoft.aspnetcore.app.runtime.win-x64.6.0.12.nupkg.sha512"
+  ],
+  "logs": []
+}

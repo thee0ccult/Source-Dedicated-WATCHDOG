@@ -1,0 +1,15 @@
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\bin\Release\net6.0\watchdog.exe
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\bin\Release\net6.0\watchdog.deps.json
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\bin\Release\net6.0\watchdog.runtimeconfig.json
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\bin\Release\net6.0\watchdog.dll
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\bin\Release\net6.0\watchdog.pdb
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\obj\Release\net6.0\watchdog.csproj.AssemblyReference.cache
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\obj\Release\net6.0\watchdog.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\obj\Release\net6.0\watchdog.AssemblyInfoInputs.cache
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\obj\Release\net6.0\watchdog.AssemblyInfo.cs
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\obj\Release\net6.0\watchdog.csproj.CoreCompileInputs.cache
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\obj\Release\net6.0\watchdog.dll
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\obj\Release\net6.0\refint\watchdog.dll
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\obj\Release\net6.0\watchdog.pdb
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\obj\Release\net6.0\watchdog.genruntimeconfig.cache
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\obj\Release\net6.0\ref\watchdog.dll

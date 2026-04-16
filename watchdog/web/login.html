@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+<title>Login</title>
+<style>
+body{background:#000;color:#cd7575;font-family:Arial;text-align:center;padding-top:100px}
+input{margin:5px;padding:8px;border-radius:6px;border:1px solid #cd7575;background:#000;color:#fff}
+button{padding:8px 12px;border-radius:6px;background:#111;color:#cd7575;border:0}
+</style>
+</head>
+<body>
+<h2>Remote Access Login</h2>
+<input id="u" placeholder="Username (max 8)" maxlength="8"><br>
+<input id="p" type="password" placeholder="Password (max 8)" maxlength="8"><br>
+<button onclick="login()">Login</button>
+
+<script>
+async function login(){
+    const res = await fetch('/api/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            user:document.getElementById('u').value,
+            pass:document.getElementById('p').value
+        })
+    });
+
+    if(res.ok){
+        location.href="/";
+    }else{
+        alert("Invalid login");
+    }
+}
+</script>
+</body>
+</html>

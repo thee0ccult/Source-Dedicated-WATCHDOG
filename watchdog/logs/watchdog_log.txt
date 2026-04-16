@@ -1,0 +1,52 @@
+﻿2026-04-14 21:46:36 - WATCHDOG STARTED
+2026-04-14 21:47:26 - Dashboard started on port 8080
+2026-04-14 21:47:26 - Startup validation phase...
+2026-04-14 21:47:28 - kvt already running (PID 191048)
+2026-04-14 21:47:28 - tf2 already running (PID 16220)
+2026-04-14 21:47:29 - dods already running (PID 110280)
+2026-04-14 21:47:30 - fof already running (PID 136340)
+2026-04-14 21:47:30 - neo already running (PID 123360)
+2026-04-14 21:47:32 - hl2dm already running (PID 153216)
+2026-04-14 21:47:32 - gmod already running (PID 85412)
+2026-04-14 21:47:34 - anh already running (PID 163508)
+2026-04-14 21:47:34 - anh2 already running (PID 49096)
+2026-04-14 21:47:35 - anh3 already running (PID 148476)
+2026-04-14 21:47:36 - nd already running (PID 41376)
+2026-04-14 21:49:24 - RCON [dods] say ok now what => Console: ok now what
+2026-04-14 21:50:35 - RCON [fof] say nah that was too fast => Console: nah that was too fast
+L 04/14/2026 - 21:50:34: "Console<0><Console><Console>" say "nah that was too fast"
+2026-04-14 21:50:48 - RCON [fof] say yeah thats what i thought but its working good => Console: yeah thats what i thought but its working good
+L 04/14/2026 - 21:50:47: "Console<0><Console><Console>" say "yeah thats what i thought but its working good"
+2026-04-14 21:53:34 - WATCHDOG STARTED
+2026-04-14 21:54:26 - Dashboard started on port 8080
+2026-04-14 21:54:26 - Startup validation phase...
+2026-04-14 21:54:28 - kvt already running (PID 191048)
+2026-04-14 21:54:28 - tf2 already running (PID 16220)
+2026-04-14 21:54:29 - dods already running (PID 110280)
+2026-04-14 21:54:30 - fof already running (PID 136340)
+2026-04-14 21:54:31 - neo already running (PID 123360)
+2026-04-14 21:54:32 - hl2dm already running (PID 153216)
+2026-04-14 21:54:32 - gmod already running (PID 85412)
+2026-04-14 21:54:34 - anh already running (PID 163508)
+2026-04-14 21:54:34 - anh2 already running (PID 49096)
+2026-04-14 21:54:36 - anh3 already running (PID 148476)
+2026-04-14 21:54:36 - nd already running (PID 41376)
+2026-04-14 21:57:34 - RCON [nd] say dont forget dr.N0s LUVS YEW => Console: dont forget dr.N0s LUVS YEW
+2026-04-14 22:01:57 - WATCHDOG STARTED
+2026-04-14 22:02:54 - Dashboard started on port 8080
+2026-04-14 22:02:54 - Startup validation phase...
+2026-04-14 22:02:56 - kvt already running (PID 191048)
+2026-04-14 22:02:56 - tf2 already running (PID 16220)
+2026-04-14 22:02:57 - dods already running (PID 110280)
+2026-04-14 22:02:58 - fof already running (PID 136340)
+2026-04-14 22:02:58 - neo already running (PID 123360)
+2026-04-14 22:03:00 - hl2dm already running (PID 153216)
+2026-04-14 22:03:00 - gmod already running (PID 85412)
+2026-04-14 22:03:02 - anh already running (PID 163508)
+2026-04-14 22:03:02 - anh2 already running (PID 49096)
+2026-04-14 22:03:03 - anh3 already running (PID 148476)
+2026-04-14 22:03:04 - nd already running (PID 41376)
+2026-04-14 22:08:05 - Stopping gmod
+2026-04-14 22:08:08 - Set VGUI [gmod] => True
+2026-04-14 22:08:35 - gmod detected DOWN
+2026-04-14 22:09:22 - Starting gmod | UseVgui=True | Args=-game garrysmod +maxplayers 12 +map gm_atomic -port 27019 +exec server.cfg

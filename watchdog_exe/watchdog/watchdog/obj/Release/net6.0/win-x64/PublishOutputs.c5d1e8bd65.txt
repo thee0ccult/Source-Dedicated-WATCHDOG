@@ -1,0 +1,2 @@
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\bin\Release\net6.0\publish\win-x64\watchdog.pdb
+C:\Users\l0psi\Desktop\watchdog_exe\watchdog\watchdog\bin\Release\net6.0\publish\win-x64\watchdog.exe

@@ -1,0 +1,112 @@
+﻿[
+    {
+        "Server":  "kvt",
+        "Port":  27027,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  "hostname: dr.N0s MYSTERIOUS sLAUGHTER HOUSE\nversion : 14/24 14 secure\nudp/ip  : 74.91.123.66:27027  (public ip: 74.91.123.66)\nsteamid : [A:1:2845306887:49389] (90284119532498951)\nmap     : t_church at: 0 x, 0 y, 0 z\ntags    : \nplayers : 0 humans, 0 bots (12 max)\nedicts  : 1081 used of 2048 max\n# userid name                uniqueid            connected ping loss state  adr"
+    },
+    {
+        "Server":  "tf2",
+        "Port":  27025,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  "hostname: dr.N0s MYSTERIOUS sLAUGHTER HOUSE\nversion : 10515055/24 10515055 secure\nudp/ip  : 74.91.123.66:27025\nsteamid : [A:1:1867415559:49362] (90284002590490631)\naccount : not logged in  (No account specified)\nmap     : mvm_coaltown at: 0 x, 0 y, 0 z\ntags    : mvm\nplayers : 0 humans, 0 bots (32 max)\nedicts  : 335 used of 2048 max\n# userid name                uniqueid            connected ping loss state  adr"
+    },
+    {
+        "Server":  "dods",
+        "Port":  27016,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  "hostname: dr.N0s MYSTERIOUS sLAUGHTER HOUSE\nversion : 9540945/24 9540945 secure\nudp/ip  : 74.91.123.66:27016\nsteamid : [A:1:1620665351:49368] (90284028113544199)\nmap     : dod_kalt at: 0 x, 0 y, 0 z\ntags    : riddleb0x.rf.gd\nplayers : 0 humans, 0 bots (32 max)\nedicts  : 568 used of 2048 max\n# userid name                uniqueid            connected ping loss state  adr"
+    },
+    {
+        "Server":  "fof",
+        "Port":  27015,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  "hostname: dr.N0s MYSTERIOUS sLAUGHTER HOUSE\nversion : 627/24 0 secure\nudp/ip  : 74.91.123.66:27015\nsteamid : [A:1:893232135:49421] (90284255019377671)\nmap     : fof_presidio at: 0 x, 0 y, 0 z\ntags    : alltalk\nplayers : 0 humans, 0 bots (20 max)\nedicts  : 318 used of 2048 max\n# userid name                uniqueid            connected ping loss state  adr"
+    },
+    {
+        "Server":  "neo",
+        "Port":  27017,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  "hostname:  dr.N0s MYSTERIOUS sLAUGHTER HOUSE\nversion : 1.0.0.2/7 4044 secure \nudp/ip  :  74.91.123.66:27017\nmap     :  nt_ballistrade_ctg at: 0 x, 0 y, 0 z\nplayers :  0 (24 max)\n\n# userid name uniqueid connected ping loss state adr\nL 04/14/2026 - 22:33:01: rcon from \"74.91.123.66:50630\": command \"status\""
+    },
+    {
+        "Server":  "hl2dm",
+        "Port":  27018,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  "hostname: dr.N0s MYSTERIOUS sLAUGHTER HOUSE\nversion : 9540945/24 9540945 secure\nudp/ip  : 74.91.123.66:27018\nsteamid : [A:1:293820423:49360] (90283992426960903)\nmap     : dm_resistance at: 0 x, 0 y, 0 z\ntags    : \nplayers : 0 humans, 0 bots (16 max)\nedicts  : 328 used of 2048 max\n# userid name                uniqueid            connected ping loss state  adr"
+    },
+    {
+        "Server":  "gmod",
+        "Port":  27019,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  ""
+    },
+    {
+        "Server":  "anh",
+        "Port":  27033,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  "hostname: dr.N0s MYSTERIOUS sLAUGHTER HOUSE\nversion : 6630498/24 6630498 insecure\nudp/ip  : 74.91.123.66:27033  (public ip: 74.91.123.66)\nsteamid : [A:1:3277424647:49400] (90284167209256967)\nmap     : anh_killhaus at: 0 x, 0 y, 0 z\ntags    : A Nights Haunting,alltalk,increased_maxplayers\nplayers : 0 humans, 0 bots (10 max)\nedicts  : 487 used of 2048 max\n# userid name                uniqueid            connected ping loss state  adr"
+    },
+    {
+        "Server":  "anh2",
+        "Port":  27034,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  "hostname: A Nights Haunting: Source Official\nversion : 1/24 1 insecure\nudp/ip  : 74.91.123.66:27034  (public ip: 74.91.123.66)\nsteamid : [A:1:1496454151:49451] (90284384471618567)\nmap     : anh_killhaus at: 0 x, 0 y, 0 z\ntags    : A Nights Haunting,alltalk,increased_maxplayers\nplayers : 0 humans, 0 bots (11 max)\nedicts  : 488 used of 2048 max\n# userid name                uniqueid            connected ping loss state  adr"
+    },
+    {
+        "Server":  "anh3",
+        "Port":  27035,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  "hostname: A Nights Haunting: Source Official\nversion : 1/24 1 insecure\nudp/ip  : 74.91.123.66:27035  (public ip: 74.91.123.66)\nsteamid : [A:1:1497753607:49451] (90284384472918023)\nmap     : anh_killhaus at: 0 x, 0 y, 0 z\ntags    : A Nights Haunting,alltalk,increased_maxplayers\nplayers : 0 humans, 0 bots (12 max)\nedicts  : 489 used of 2048 max\n# userid name                uniqueid            connected ping loss state  adr"
+    },
+    {
+        "Server":  "nd",
+        "Port":  27036,
+        "Enabled":  true,
+        "Message":  "",
+        "Players":  [
+
+                    ],
+        "RawStatus":  "hostname: dr.N0s MYSTERIOUS sLAUGHTER HOUSE\nversion : 18.10.14 7236 secure\nudp/ip  : 74.91.123.66:27036  (public ip: 74.91.123.66)\nsteamid : [A:1:2057564167(49362)] (90284002780639239)\nmap     : metro at: 0 x, 0 y, 0 z\ntags    : botquota,nucleardawn\nplayers : 0 humans, 0 bots (32 max)\nedicts  : 976 used of 2048 max\n# userid name                uniqueid            connected ping loss state  adr"
+    }
+]
