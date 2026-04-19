@@ -19,10 +19,40 @@ function Set-ServerUseVgui {
     )
 
     if (-not $launchPrefs.ContainsKey($ServerName)) {
-        $launchPrefs[$ServerName] = @{ UseVgui = $false }
+        $launchPrefs[$ServerName] = @{ UseVgui = $false; LockOut = $false }
     }
 
     $launchPrefs[$ServerName].UseVgui = $UseVgui
+    Save-LaunchPrefs
+}
+
+function Get-ServerLockOut {
+    param($server)
+
+    if ($launchPrefs.ContainsKey($server.Name) -and $launchPrefs[$server.Name].ContainsKey("LockOut")) {
+        return [bool]$launchPrefs[$server.Name].LockOut
+    }
+
+    return $false
+}
+
+function Set-ServerLockOut {
+    param(
+        [string]$ServerName,
+        [bool]$LockOut
+    )
+
+    if (-not $launchPrefs.ContainsKey($ServerName)) {
+        $launchPrefs[$ServerName] = @{
+            UseVgui = $false
+            LockOut = $false
+        }
+    }
+    elseif (-not $launchPrefs[$ServerName].ContainsKey("LockOut")) {
+        $launchPrefs[$ServerName].LockOut = $false
+    }
+
+    $launchPrefs[$ServerName].LockOut = $LockOut
     Save-LaunchPrefs
 }
 

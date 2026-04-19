@@ -61,6 +61,7 @@ function Start-Dashboard {
 			$authToken = [guid]::NewGuid().ToString()
 
             $listener = New-Object System.Net.HttpListener
+            $listener.IgnoreWriteExceptions = $true
             $listener.Prefixes.Add("http://+:$port/")
 
             function Write-WidgetResponse {
@@ -165,8 +166,8 @@ function Start-Dashboard {
                         $playerEntry = $playersData | Where-Object { $_.Server -and $_.Server.ToLowerInvariant() -eq $serverName } | Select-Object -First 1
                         $onlinePlayers = @()
                         if ($playerEntry -and $playerEntry.Enabled -and $playerEntry.Players) {
-                            $onlinePlayers = @($playerEntry.Players | Select-Object -First 10 | ForEach-Object {
-                                @{
+							$onlinePlayers = @($playerEntry.Players | ForEach-Object {
+								@{
                                     name      = $_.Name
                                     steamId   = $_.SteamId
                                     connected = $_.Connected
@@ -229,6 +230,7 @@ h1,h2{margin:0 0 12px 0;font-size:18px}
 .group{margin-bottom:12px}
 label{display:block;font-size:12px;color:#aeb6bf;margin-bottom:4px}
 input[type="text"],input[type="number"],select,textarea{width:100%;box-sizing:border-box;background:#0f1317;color:#eef2f6;border:1px solid #2d3640;border-radius:6px;padding:8px}
+input[type="color"]{width:100%;box-sizing:border-box;background:#0f1317;border:1px solid #2d3640;border-radius:6px;padding:4px;height:40px;cursor:pointer}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .check{display:flex;align-items:center;gap:8px;padding-top:8px}
 button{background:#2e7dff;color:#fff;border:0;border-radius:6px;padding:10px 12px;cursor:pointer}
@@ -267,6 +269,22 @@ iframe{border:0;background:#000;border-radius:8px;display:block}
             </div>
         </div>
 
+<div class="row">
+    <div class="group">
+        <label for="labelColor">Label Color</label>
+        <input id="labelColor" type="text" value="dddddd" maxlength="6">
+    </div>
+    <div class="group">
+        <label for="valueColor">Value Color</label>
+        <input id="valueColor" type="text" value="dddddd" maxlength="6">
+    </div>
+</div>
+
+<div class="group">
+    <label for="infoColor">Info Color</label>
+    <input id="infoColor" type="text" value="dddddd" maxlength="6">
+</div>
+
         <div class="row">
             <div class="group">
                 <label for="titleBgColor">Title Background</label>
@@ -304,19 +322,46 @@ iframe{border:0;background:#000;border-radius:8px;display:block}
             </div>
         </div>
 
-        <div class="row">
-            <div class="group">
-                <label for="width">Width (min 144)</label>
-                <input id="width" type="number" value="260" min="144">
-            </div>
-            <div class="group">
-                <label for="playerHeight">Player List Height (min 100)</label>
-                <input id="playerHeight" type="number" value="180" min="100">
-            </div>
-        </div>
+<div class="row">
+    <div class="group">
+        <label for="width">Width (min 144)</label>
+        <input id="width" type="number" value="260" min="144">
+    </div>
+    <div class="group">
+        <label for="frameHeight">Frame Height</label>
+        <input id="frameHeight" type="number" value="420" min="200">
+    </div>
+</div>
 
-        <div class="check"><input id="showPlayers" type="checkbox" checked> <label for="showPlayers" style="margin:0;">Show online players</label></div>
-        <div class="check"><input id="autoHeight" type="checkbox" checked> <label for="autoHeight" style="margin:0;">Auto-calculate iframe height</label></div>
+<div class="row">
+    <div class="group">
+        <label for="playerHeight">Player List Height (min 100)</label>
+        <input id="playerHeight" type="number" value="180" min="100">
+    </div>
+    <div class="group"></div>
+</div>
+
+<div class="row">
+    <div class="group">
+        <label for="globalColorPicker">Color Picker</label>
+        <input id="globalColorPicker" type="color" value="#57d957">
+    </div>
+    <div class="group">
+        <label for="globalColorHex">Hex Value</label>
+        <input id="globalColorHex" type="text" value="57d957" maxlength="6" readonly>
+    </div>
+</div>
+
+        <div class="row">
+    <div class="check">
+        <input id="showPlayers" type="checkbox" checked>
+        <label for="showPlayers" style="margin:0;">Show online players</label>
+    </div>
+    <div class="check">
+        <input id="showJoin" type="checkbox" checked>
+        <label for="showJoin" style="margin:0;">Show join button</label>
+    </div>
+</div>
 
         <div class="actions" style="margin-top:14px;">
             <button id="refreshBtn" type="button">Refresh Preview</button>
@@ -338,22 +383,25 @@ iframe{border:0;background:#000;border-radius:8px;display:block}
 
 <script>
 (function(){
-    const presets = {
-        dark:   { bgColor:'111111', fontColor:'dddddd', titleBgColor:'111111', titleColor:'ffffff', borderColor:'333333', linkColor:'57d957', borderStyle:'solid', fontSize:'12' },
-        light:  { bgColor:'f3f5f7', fontColor:'1e2328', titleBgColor:'e7ebef', titleColor:'111111', borderColor:'c7d0d9', linkColor:'2e7dff', borderStyle:'solid', fontSize:'12' },
-        orange: { bgColor:'1a1310', fontColor:'f4d8c8', titleBgColor:'241712', titleColor:'ffb26b', borderColor:'5d3a2a', linkColor:'ff8c42', borderStyle:'double', fontSize:'12' },
-        green:  { bgColor:'0f1712', fontColor:'d8f0df', titleBgColor:'132118', titleColor:'8ef0a4', borderColor:'29543a', linkColor:'5de07f', borderStyle:'solid', fontSize:'12' }
-    };
+const presets = {
+    dark:   { bgColor:'111111', fontColor:'dddddd', infoColor:'dddddd', titleBgColor:'111111', titleColor:'ffffff', borderColor:'333333', linkColor:'57d957', borderStyle:'solid', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' },
+    light:  { bgColor:'f3f5f7', fontColor:'1e2328', infoColor:'1e2328', titleBgColor:'e7ebef', titleColor:'111111', borderColor:'c7d0d9', linkColor:'2e7dff', borderStyle:'solid', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' },
+    orange: { bgColor:'1a1310', fontColor:'f4d8c8', infoColor:'f4d8c8', titleBgColor:'241712', titleColor:'ffb26b', borderColor:'5d3a2a', linkColor:'ff8c42', borderStyle:'double', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' },
+    green:  { bgColor:'0f1712', fontColor:'d8f0df', infoColor:'d8f0df', titleBgColor:'132118', titleColor:'8ef0a4', borderColor:'29543a', linkColor:'5de07f', borderStyle:'solid', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' }
+};
 
-    const ids = ['theme','bgColor','fontColor','titleBgColor','titleColor','borderColor','linkColor','borderStyle','fontSize','width','playerHeight','showPlayers','autoHeight'];
-    const el = {};
-    ids.forEach(id => el[id] = document.getElementById(id));
+	const ids = ['theme','bgColor','fontColor','labelColor','valueColor','titleBgColor','titleColor','borderColor','linkColor','borderStyle','fontSize','width','frameHeight','playerHeight','showPlayers','showJoin'];
+
+	const el = {};
+	ids.forEach(id => el[id] = document.getElementById(id));
     const previewFrame = document.getElementById('previewFrame');
     const embedCode = document.getElementById('embedCode');
     const heightInfo = document.getElementById('heightInfo');
+    const globalColorPicker = document.getElementById('globalColorPicker');
+    const globalColorHex = document.getElementById('globalColorHex');
 
     function hex(v, fallback){
-        return /^[0-9a-fA-F]{6}$/.test(v || '') ? v : fallback;
+        return /^[0-9a-fA-F]{6}$/.test(v || '') ? v.toLowerCase() : fallback;
     }
     function intVal(v, fallback, min, max){
         const n = parseInt(v,10);
@@ -364,14 +412,15 @@ iframe{border:0;background:#000;border-radius:8px;display:block}
         const theme = el.theme.value;
         if (theme !== 'custom' && presets[theme]){
             const p = presets[theme];
-            el.bgColor.value = p.bgColor;
-            el.fontColor.value = p.fontColor;
-            el.titleBgColor.value = p.titleBgColor;
-            el.titleColor.value = p.titleColor;
-            el.borderColor.value = p.borderColor;
-            el.linkColor.value = p.linkColor;
-            el.borderStyle.value = p.borderStyle;
-            el.fontSize.value = p.fontSize;
+el.bgColor.value = p.bgColor;
+el.fontColor.value = p.fontColor;
+el.infoColor.value = p.infoColor;
+el.titleBgColor.value = p.titleBgColor;
+el.titleColor.value = p.titleColor;
+el.borderColor.value = p.borderColor;
+el.linkColor.value = p.linkColor;
+el.borderStyle.value = p.borderStyle;
+el.fontSize.value = p.fontSize;
         }
         render();
     }
@@ -381,43 +430,43 @@ iframe{border:0;background:#000;border-radius:8px;display:block}
         const showPlayers = el.showPlayers.checked ? '1' : '0';
 
         const params = new URLSearchParams();
-        params.set('theme', el.theme.value);
-        params.set('bgColor', hex(el.bgColor.value, '111111'));
-        params.set('fontColor', hex(el.fontColor.value, 'dddddd'));
-        params.set('titleBgColor', hex(el.titleBgColor.value, '111111'));
-        params.set('titleColor', hex(el.titleColor.value, 'ffffff'));
-        params.set('borderColor', hex(el.borderColor.value, '333333'));
-        params.set('linkColor', hex(el.linkColor.value, '57d957'));
+		params.set('theme', el.theme.value);
+		params.set('bgColor', hex(el.bgColor.value, '111111'));
+		params.set('fontColor', hex(el.fontColor.value, 'dddddd'));
+		params.set('labelColor', hex(el.labelColor.value, hex(el.fontColor.value, 'dddddd')));
+		params.set('valueColor', hex(el.valueColor.value, hex(el.fontColor.value, 'dddddd')));		params.set('titleBgColor', hex(el.titleBgColor.value, '111111'));
+		params.set('titleColor', hex(el.titleColor.value, 'ffffff'));
+		params.set('borderColor', hex(el.borderColor.value, '333333'));
+		params.set('linkColor', hex(el.linkColor.value, '57d957'));
         params.set('borderStyle', ['solid','double','minimal'].includes(el.borderStyle.value) ? el.borderStyle.value : 'solid');
         params.set('fontSize', intVal(el.fontSize.value, 12, 10, 18));
         params.set('width', width);
-        params.set('playerHeight', playerHeight);
+		params.set('playerHeight', playerHeight);
+		params.set('frameHeight', intVal(el.frameHeight.value, 420, 200, 2000));
         params.set('showPlayers', showPlayers);
+		params.set('showJoin', el.showJoin.checked ? '1' : '0');
         return params.toString();
     }
-    function calculateHeight(){
-        const fontSize = intVal(el.fontSize.value, 12, 10, 18);
-        const playerHeight = intVal(el.playerHeight.value, 180, 100, 800);
-        let total = 138 + Math.round((fontSize - 12) * 8);
-        if (el.showPlayers.checked){
-            total += playerHeight + 14;
-        } else {
-            total += 26;
-        }
-        return total;
-    }
+function calculateHeight(){
+    return intVal(el.frameHeight.value, 420, 200, 2000);
+}
     function render(){
         const width = intVal(el.width.value, 260, 144, 1200);
         const qs = buildQuery();
         const serverName = "$serverName";
-const src = '/widget/' + serverName + '?' + qs;
-        const height = el.autoHeight.checked ? calculateHeight() : 420;
+        const src = '/widget/' + serverName + '?' + qs;
+		const height = intVal(el.frameHeight.value, 420, 200, 2000);
 
         previewFrame.width = width;
         previewFrame.height = height;
         previewFrame.src = src;
         heightInfo.textContent = 'Suggested iframe height: ' + height + 'px';
         embedCode.value = '<iframe src="' + window.location.origin + src + '" frameborder="0" scrolling="no" width="' + width + '" height="' + height + '"></iframe>';
+    }
+
+    function syncGlobalColorHex(){
+        const value = globalColorPicker.value.replace('#','').toLowerCase();
+        globalColorHex.value = value;
     }
 
     document.getElementById('refreshBtn').addEventListener('click', render);
@@ -427,7 +476,10 @@ const src = '/widget/' + serverName + '?' + qs;
     el.theme.addEventListener('change', applyTheme);
     ids.filter(id => id !== 'theme').forEach(id => el[id].addEventListener('input', render));
     ids.filter(id => id !== 'theme').forEach(id => el[id].addEventListener('change', render));
+    globalColorPicker.addEventListener('input', syncGlobalColorHex);
+    globalColorPicker.addEventListener('change', syncGlobalColorHex);
 
+    syncGlobalColorHex();
     applyTheme();
 })();
 </script>
@@ -530,19 +582,25 @@ const src = '/widget/' + serverName + '?' + qs;
                             }
                         }
 
-                        $bgColor = Get-SafeHex -Value $qs["bgColor"] -Default $defaultBgColor
-                        $fontColor = Get-SafeHex -Value $qs["fontColor"] -Default $defaultFontColor
-                        $titleBgColor = Get-SafeHex -Value $qs["titleBgColor"] -Default $defaultTitleBgColor
-                        $titleColor = Get-SafeHex -Value $qs["titleColor"] -Default $defaultTitleColor
-                        $borderColor = Get-SafeHex -Value $qs["borderColor"] -Default $defaultBorderColor
-                        $linkColor = Get-SafeHex -Value $qs["linkColor"] -Default $defaultLinkColor
-                        $borderStyle = Get-SafeEnum -Value $qs["borderStyle"] -Allowed @("solid","double","minimal") -Default $defaultBorderStyle
-
+						$bgColor = Get-SafeHex -Value $qs["bgColor"] -Default $defaultBgColor
+						$fontColor = Get-SafeHex -Value $qs["fontColor"] -Default $defaultFontColor
+						$infoColor = Get-SafeHex -Value $qs["infoColor"] -Default $fontColor
+						$labelColor = Get-SafeHex -Value $qs["labelColor"] -Default $infoColor
+						$valueColor = Get-SafeHex -Value $qs["valueColor"] -Default $infoColor
+						$titleBgColor = Get-SafeHex -Value $qs["titleBgColor"] -Default $defaultTitleBgColor
+						$titleColor = Get-SafeHex -Value $qs["titleColor"] -Default $defaultTitleColor
+						$borderColor = Get-SafeHex -Value $qs["borderColor"] -Default $defaultBorderColor
+						$linkColor = Get-SafeHex -Value $qs["linkColor"] -Default $defaultLinkColor
+						$borderStyle = Get-SafeEnum -Value $qs["borderStyle"] -Allowed @("solid","double","minimal") -Default $defaultBorderStyle
                         $width = Get-SafeInt -Value $qs["width"] -Default 260 -Min 144 -Max 1200
                         $fontSize = Get-SafeInt -Value $qs["fontSize"] -Default 12 -Min 10 -Max 18
                         $playerHeight = Get-SafeInt -Value $qs["playerHeight"] -Default 180 -Min 100 -Max 800
-                        $showPlayers = Get-SafeBool -Value $qs["showPlayers"] -Default $true
-                        $showPlayersJs = if ($showPlayers) { "true" } else { "false" }
+						$frameHeight = Get-SafeInt -Value $qs["frameHeight"] -Default 420 -Min 200 -Max 2000
+						$showPlayers = Get-SafeBool -Value $qs["showPlayers"] -Default $true
+						$showJoin = Get-SafeBool -Value $qs["showJoin"] -Default $true
+
+						$showPlayersJs = if ($showPlayers) { "true" } else { "false" }
+						$showJoinJs = if ($showJoin) { "true" } else { "false" }
 
                         $widgetHtml = @"
 <!doctype html>
@@ -553,16 +611,59 @@ const src = '/widget/' + serverName + '?' + qs;
 <title>Server Widget - $serverName</title>
 <style>
 html,body{margin:0;padding:0;background:#$bgColor;color:#$fontColor;font-family:Arial,Helvetica,sans-serif;font-size:${fontSize}px}
-body{overflow:hidden}
-.wrap{width:${width}px;padding:10px;border:1px $(if ($borderStyle -eq "minimal") { "solid" } else { $borderStyle }) #$borderColor;background:#$bgColor;box-sizing:border-box}
+body{
+    overflow:hidden;
+    height:${frameHeight}px;
+}
+.wrap{
+    width:${width}px;
+    height:${frameHeight}px;
+    padding:10px;
+    border:1px $(if ($borderStyle -eq "minimal") { "solid" } else { $borderStyle }) #$borderColor;
+    background:#$bgColor;
+    box-sizing:border-box;
+
+    display:flex;
+    flex-direction:column;
+}
 .title{font-size:$([int]($fontSize + 2))px;font-weight:700;color:#$titleColor;background:#$titleBgColor;margin:-10px -10px 8px -10px;padding:10px;border-bottom:1px solid #$borderColor}
-.status{margin-bottom:6px}
+.status{
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+}
 .online{color:#$linkColor;font-weight:700}
 .offline{color:#ff6666;font-weight:700}
 .meta{line-height:1.45;word-wrap:break-word}
-.players{margin-top:8px;max-height:${playerHeight}px;overflow-y:auto;border-top:1px solid #$borderColor;padding-top:8px}
+.meta .label{color:#$labelColor;font-weight:600}
+.meta .value{color:#$valueColor}
+.players{
+    margin-top:8px;
+    height:${playerHeight}px;
+    overflow-y:auto;
+    border-top:1px solid #$borderColor;
+    padding-top:8px;
+    flex-shrink:0;
+}
 .player{padding:4px 0;border-bottom:1px solid #$borderColor}
 .small{font-size:$([Math]::Max($fontSize-1,10))px;color:#$fontColor;opacity:0.85}
+.join-btn{
+    padding:1px 6px;
+    font-size:0.9em;
+    line-height:1.2;
+    font-weight:600;
+    border-radius:4px;
+    border:1px solid #$borderColor;
+    background:#$linkColor;
+    color:#000;
+    text-decoration:none;
+    white-space:nowrap;
+}
+.join-btn:hover{
+    filter:brightness(1.1);
+}
 .error{color:#ff6666}
 a{color:#$linkColor}
 </style>
@@ -577,6 +678,7 @@ async function load(){
     try{
         const serverName = "$serverName";
         const showPlayers = $showPlayersJs;
+		const showJoin = $showJoinJs;
         const res = await fetch('/widget/api/' + serverName + '?ts=' + Date.now(), { cache: 'no-store' });
 
         const root = document.getElementById('content');
@@ -592,18 +694,30 @@ async function load(){
         const players = Array.isArray(data.onlinePlayers) ? data.onlinePlayers : [];
 
         let html = '';
-        html += '<div class="status ' + (isOnline ? 'online' : 'offline') + '">' + (data.status || 'UNKNOWN') + '</div>';
+        let statusHtml = '<div class="status ' + (isOnline ? 'online' : 'offline') + '">';
+
+statusHtml += '<span>' + (data.status || 'UNKNOWN') + '</span>';
+
+const connect = (data.ip && data.port)
+    ? 'steam://connect/' + data.ip + ':' + data.port
+    : '';
+
+if(connect && showJoin){
+    statusHtml += '<a class="join-btn" href="' + connect + '">JOIN</a>';
+}
+
+statusHtml += '</div>';
+
+html += statusHtml;
 html += '<div class="meta">';
 
-html += 'Hostname: ' + (data.hostname || '') + '<br>';
+html += '<span class="label">Hostname:</span> <span class="value">' + (data.hostname || '') + '</span><br>';
+html += '<span class="label">Address:</span> <span class="value">' + ((data.ip || '') + ':' + (data.port || '')) + '</span><br>';
+html += '<span class="label">Map:</span> <span class="value">' + (data.map || '') + '</span><br>';
+html += '<span class="label">Players:</span> <span class="value">' + (data.players || '') + '</span><br>';
+html += '<span class="label">Updated:</span> <span class="value">' + (data.updated || '') + '</span>';
 
-// (IP + PORT)
-html += 'Address: ' + ((data.ip || '') + ':' + (data.port || '')) + '<br>';
-
-html += 'Map: ' + (data.map || '') + '<br>';
-        html += 'Players: ' + (data.players || '') + '<br>';
-        html += 'Updated: ' + (data.updated || '');
-        html += '</div>';
+html += '</div>';
 
         if(showPlayers){
             if(players.length > 0){
@@ -611,9 +725,48 @@ html += 'Map: ' + (data.map || '') + '<br>';
                 for(let i=0;i<players.length;i++){
                     const p = players[i] || {};
                     html += '<div class="player">';
-                    html += '<div>' + (p.name || '') + '</div>';
-                    html += '<div class="small">Ping: ' + (p.ping || '') + ' | Connected: ' + (p.connected || '') + '</div>';
-                    html += '</div>';
+					html += '<div>' + (p.name || '') + '</div>';
+					// Convert Steam2 -> SteamID64
+function steamTo64(id){
+    try{
+        if(!id) return '';
+
+        // Steam2 format
+        if(id.startsWith('STEAM_')){
+            const parts = id.split(':');
+            const Y = parseInt(parts[1]);
+            const Z = parseInt(parts[2]);
+            return (BigInt(Z) * 2n + BigInt(Y) + 76561197960265728n).toString();
+        }
+
+        // Steam3 format [U:1:XXXX]
+        const match = id.match(/\[U:1:(\d+)\]/);
+        if(match){
+            return (BigInt(match[1]) + 76561197960265728n).toString();
+        }
+
+        return '';
+    }catch{
+        return '';
+    }
+}
+
+const steamId = (p.steamId || '');
+const steam64 = steamTo64(steamId);
+const profileUrl = steam64 ? ('https://steamcommunity.com/profiles/' + steam64) : '';
+
+html += '<div class="small" style="opacity:0.7; display:flex; align-items:center; gap:6px;">';
+
+if(profileUrl){
+    html += '<a href="' + profileUrl + '" target="_blank" ' +
+            'style="text-decoration:none; padding:1px 6px; border:1px solid #$borderColor; ' +
+            'background:#$linkColor; color:#000; border-radius:4px; font-size:0.9em; font-weight:600;">' +
+            'PROFILE</a>';
+}
+
+html += '<span>SteamID: ' + steamId + '</span>';
+html += '</div>';					html += '<div class="small">Ping: ' + (p.ping || '') + ' | Connected: ' + (p.connected || '') + '</div>';
+					html += '</div>';
                 }
                 html += '</div>';
             } else {
@@ -621,7 +774,7 @@ html += 'Map: ' + (data.map || '') + '<br>';
             }
         }
 
-        root.innerHTML = html;
+root.innerHTML = html;
     }catch(e){
         const root = document.getElementById('content');
         if(root){ root.innerHTML = '<div class="error">JS Error</div>'; }
@@ -714,6 +867,22 @@ if ($path -ne "/api/toggle-remote" -and $path -ne "/api/remote-status") {
 								$res.OutputStream.Write($bytes, 0, $bytes.Length)
 								}
 							}
+
+                            "/api/set-lockout" {
+                                if ($req.HttpMethod -ne "POST") {
+                                    $res.StatusCode = 405
+                                } else {
+                                    $reader = New-Object System.IO.StreamReader($req.InputStream, $req.ContentEncoding)
+                                    $body = $reader.ReadToEnd()
+                                    $reader.Close()
+
+                                    Add-Content -Path $queuePath -Value $body
+
+                                    $bytes = [System.Text.Encoding]::UTF8.GetBytes('{"ok":true}')
+                                    $res.ContentType = "application/json; charset=utf-8"
+                                    $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                                }
+                            }
                             "/api/history" {
                                 $json = if (Test-Path $historyPath) {
                                     $raw = Get-Content -Path $historyPath -Raw
@@ -857,6 +1026,11 @@ if ($uHash -eq $currentUserHash -and $pHash -eq $currentPassHash) {
     $res.ContentType = "application/json"
     $res.OutputStream.Write($bytes, 0, $bytes.Length)
 }
+                            "/api/ping" {
+                                $res.ContentType = "application/json; charset=utf-8"
+                                $bytes = [System.Text.Encoding]::UTF8.GetBytes("{""ok"":true,""ts"":""$((Get-Date).ToString("o"))""}")
+                                $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                            }
                             "/api/remote-status" {
                                 $bytes = [System.Text.Encoding]::UTF8.GetBytes("{""remote"":$($allowRemote.ToString().ToLower())}")
                                 $res.ContentType = "application/json; charset=utf-8"

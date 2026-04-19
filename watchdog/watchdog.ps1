@@ -81,6 +81,7 @@ function Update-Status {
             Port         = $server.Port
             Exe          = $server.Exe
 			UseVgui      = Get-ServerUseVgui -server $server
+            LockOut      = Get-ServerLockOut -server $server
 			OriginalArgs = $server.Args
 			LaunchArgs   = Get-EffectiveServerArgs -server $server
 			ScriptStartTime = $globalScriptStart
@@ -245,6 +246,16 @@ function Process-CommandQueue {
 						Write-Log "Set VGUI [$($server.Name)] => $useVgui"
 						Update-Status
 					}
+                    "setLockOut" {
+                        $lockOut = $false
+                        if ($null -ne $cmd.lockOut) {
+                            $lockOut = [bool]$cmd.lockOut
+                        }
+
+                        Set-ServerLockOut -ServerName $server.Name -LockOut $lockOut
+                        Write-Log "Set LOCK OUT [$($server.Name)] => $lockOut"
+                        Update-Status
+                    }
 "rcon" {
     if (-not [string]::IsNullOrWhiteSpace($cmd.command)) {
         try {
@@ -288,31 +299,67 @@ function Process-CommandQueue {
     }
 }
 
-        # --- Dashboard self-heal ---
-        try {
-            $dashJob = Get-Job -Name "SourceDedicatedWatchdogDashboard" -ErrorAction SilentlyContinue
+        function Test-DashboardHealth {
+    param(
+        [int]$TimeoutSeconds = 2
+    )
 
-            if (-not $dashJob -or $dashJob.State -ne "Running") {
-                Write-Log "Dashboard job not running. Restarting dashboard listener."
+    try {
+        $uri = "http://127.0.0.1:$dashboardPort/api/ping?ts=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
+        $response = Invoke-WebRequest -Uri $uri -UseBasicParsing -TimeoutSec $TimeoutSeconds -ErrorAction Stop
+        return ($response.StatusCode -eq 200 -and $response.Content -match '"ok"\s*:\s*true')
+    } catch {
+        return $false
+    }
+}
 
-                if ($dashJob) {
-                    try {
-                        $dashDetails = Receive-Job -Name "SourceDedicatedWatchdogDashboard" -Keep -ErrorAction SilentlyContinue | Out-String
-                        if (-not [string]::IsNullOrWhiteSpace($dashDetails)) {
-                            Write-Log "Dashboard job output: $dashDetails"
-                        }
-                    } catch {}
+function Ensure-DashboardHealthy {
+    $jobName = "SourceDedicatedWatchdogDashboard"
 
-                    try {
-                        Remove-Job -Name "SourceDedicatedWatchdogDashboard" -Force -ErrorAction SilentlyContinue
-                    } catch {}
-                }
+    try {
+        $dashJob = Get-Job -Name $jobName -ErrorAction SilentlyContinue
+        $jobHealthy = ($dashJob -and $dashJob.State -eq "Running")
+        $httpHealthy = $false
 
-                Start-Dashboard
-            }
-        } catch {
-            Write-Log "Dashboard self-heal error: $($_.Exception.Message)"
+        if ($jobHealthy) {
+            $httpHealthy = Test-DashboardHealth
         }
+
+        if ($jobHealthy -and $httpHealthy) {
+            return
+        }
+
+        $reason = @()
+        if (-not $dashJob) {
+            $reason += "job missing"
+        } elseif ($dashJob.State -ne "Running") {
+            $reason += "job state=$($dashJob.State)"
+        }
+
+        if (-not $httpHealthy) {
+            $reason += "HTTP probe failed"
+        }
+
+        Write-Log ("Dashboard unhealthy -> " + ($reason -join ", ") + ". Restarting dashboard listener.")
+
+        if ($dashJob) {
+            try {
+                $dashDetails = Receive-Job -Name $jobName -Keep -ErrorAction SilentlyContinue | Out-String
+                if (-not [string]::IsNullOrWhiteSpace($dashDetails)) {
+                    Write-Log "Dashboard job output: $dashDetails"
+                }
+            } catch {}
+
+            try { Stop-Job -Name $jobName -ErrorAction SilentlyContinue } catch {}
+            try { Remove-Job -Name $jobName -Force -ErrorAction SilentlyContinue } catch {}
+        }
+
+        Start-Sleep -Milliseconds 500
+        Start-Dashboard
+    } catch {
+        Write-Log "Dashboard self-heal error: $($_.Exception.Message)"
+    }
+}
 
 # ================================
 # START
@@ -325,6 +372,7 @@ Update-History
 Update-Players
 Ensure-DashboardRedirectFile
 Start-Dashboard
+Ensure-DashboardHealthy
 
 Write-Log "Startup validation phase..."
 
@@ -354,22 +402,43 @@ foreach ($s in $servers) {
 # LOOP
 # ================================
 $lastHeavyCycle = Get-Date
+$lastDashboardHealthCheck = [DateTime]::MinValue
 
 while ($true) {
     try {
         # --- FAST LANE: process dashboard commands quickly ---
         Process-CommandQueue
 
+        # --- DASHBOARD HEALTH LANE: keep listener alive ---
+        if (((Get-Date) - $lastDashboardHealthCheck).TotalSeconds -ge 15) {
+            Ensure-DashboardHealthy
+            $lastDashboardHealthCheck = Get-Date
+        }
+
         # --- HEAVY LANE: keep original watchdog/status cadence at 30 seconds ---
         if (((Get-Date) - $lastHeavyCycle).TotalSeconds -ge 30) {
 
             foreach ($s in $servers) {
                 $p = Get-ServerProcess -port $s.Port -exe $s.Exe
+                $lockOutEnabled = Get-ServerLockOut -server $s
 
                 if (-not $p) {
                     if (-not $downSince[$s.Name]) {
                         $downSince[$s.Name] = Get-Date
                         Write-Log "$($s.Name) detected DOWN"
+                    }
+
+                    if ($lockOutEnabled) {
+                        if (-not $rconStatus.ContainsKey("$($s.Name)_LockOutLogged")) {
+                            Write-Log "$($s.Name) restart suppressed (LOCK OUT enabled)"
+                            $rconStatus["$($s.Name)_LockOutLogged"] = @{
+                                Status = "logged"
+                                Time = (Get-Date)
+                            }
+                        }
+                        continue
+                    } else {
+                        $rconStatus.Remove("$($s.Name)_LockOutLogged")
                     }
 
                     if (((Get-Date) - $downSince[$s.Name]).TotalSeconds -ge 60) {
@@ -380,6 +449,7 @@ while ($true) {
                     }
                 } else {
                     $downSince.Remove($s.Name)
+                    $rconStatus.Remove("$($s.Name)_LockOutLogged")
                 }
             }
 

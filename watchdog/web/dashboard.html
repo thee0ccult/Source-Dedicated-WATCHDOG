@@ -264,6 +264,18 @@ async function setVgui(server, useVgui) {
     });
 }
 
+async function setLockOut(server, lockOut) {
+    await api('/api/set-lockout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            server,
+            action: 'setLockOut',
+            lockOut: !!lockOut
+        })
+    });
+}
+
 async function toggleRemote() {
     await api('/api/toggle-remote', { method: 'POST' });
     await refreshRemoteStatus();
@@ -423,6 +435,26 @@ function renderCards() {
         }
     </label>
 
+    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:4px">
+        <input type="checkbox"
+               id="lockout-${server.Name}"
+               ${server.LockOut ? 'checked' : ''}
+               onchange="setLockOut('${server.Name}', this.checked)">
+        LOCK OUT
+
+        ${
+            server.LockOut
+            ? `<span style="
+                    color:#ffb347;
+                    font-weight:700;
+                    margin-left:6px;
+                ">
+                [WATCHDOG RESTARTS DISABLED]
+               </span>`
+            : ''
+        }
+    </label>
+
     <div style="margin-top:4px">
         Effective args: ${server.LaunchArgs ?? ''}
     </div>
@@ -476,25 +508,28 @@ function renderPlayers() {
         } else {
             inner += `<table class="playersTable">
                 <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>SteamID</th>
-                        <th>Connected</th>
-                        <th>Ping</th>
-                        <th>Loss</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${entry.Players.map(p => `
-                        <tr>
-                            <td>${p.Name}</td>
-                            <td>${p.SteamId}</td>
-                            <td>${p.Connected}</td>
-                            <td>${p.Ping}</td>
-                            <td>${p.Loss}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
+					<tr>
+						<th>Name</th>
+						<th>Connected</th>
+						<th>Ping</th>
+						<th>Loss</th>
+					</tr>
+				</thead>
+				<tbody>
+					${entry.Players.map(p => `
+						<tr>
+							<td>
+								<div>${p.Name}</div>
+								<div style="font-size:10px;color:#888">
+									${p.SteamId ?? ''}
+								</div>
+							</td>
+							<td>${p.Connected}</td>
+							<td>${p.Ping}</td>
+							<td>${p.Loss}</td>
+						</tr>
+					`).join('')}
+				</tbody>
             </table>`;
         }
 

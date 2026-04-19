@@ -82,6 +82,7 @@ function Initialize-LaunchPrefs {
             $defaults += [PSCustomObject]@{
                 Name    = $server.Name
                 UseVgui = $false
+                LockOut = $false
             }
         }
 
@@ -105,6 +106,7 @@ function Load-LaunchPrefs {
             if ($null -ne $item -and $item.PSObject.Properties["Name"]) {
                 $script:launchPrefs[$item.Name] = @{
                     UseVgui = [bool]$item.UseVgui
+                    LockOut = if ($item.PSObject.Properties["LockOut"]) { [bool]$item.LockOut } else { $false }
                 }
             }
         }
@@ -122,9 +124,15 @@ function Save-LaunchPrefs {
                 $useVgui = [bool]$launchPrefs[$server.Name].UseVgui
             }
 
+            $lockOut = $false
+            if ($launchPrefs.ContainsKey($server.Name) -and $launchPrefs[$server.Name].ContainsKey("LockOut")) {
+                $lockOut = [bool]$launchPrefs[$server.Name].LockOut
+            }
+
             $out += [PSCustomObject]@{
                 Name    = $server.Name
                 UseVgui = $useVgui
+                LockOut = $lockOut
             }
         }
 
