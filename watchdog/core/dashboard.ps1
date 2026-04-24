@@ -180,9 +180,21 @@ function Start-Dashboard {
 $ip = ""
 $port = ""
 
-if ($server.UdpIp -match "(.+):(\d+)$") {
+$ip = ""
+$port = ""
+
+if ($server.UdpIp -match "^([0-9\.]+):(\d+)$") {
     $ip = $matches[1]
     $port = $matches[2]
+}
+
+# --- HARD FALLBACK (THIS FIXES EVERYTHING) ---
+if ([string]::IsNullOrWhiteSpace($ip)) {
+    $ip = $server.RconHost
+}
+
+if ([string]::IsNullOrWhiteSpace($port)) {
+    $port = $server.Port
 }
 
 $safe = @{

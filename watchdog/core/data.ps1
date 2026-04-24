@@ -57,8 +57,15 @@ $script:scriptStartTime = Get-Date
 
 # --- Logging ---
 function Write-Log {
-    param ([string]$msg)
-    "$((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')) - $msg" | Out-File -Append -FilePath $logFile -Encoding UTF8
+    param(
+        [string]$msg,
+        [ConsoleColor]$Color = "Gray"
+    )
+
+    $line = "$((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')) - $msg"
+
+    $line | Out-File -Append -FilePath $logFile -Encoding UTF8
+    Write-Host $line -ForegroundColor $Color
 }
 
 # --- File initialization ---

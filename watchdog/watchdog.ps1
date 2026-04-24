@@ -1,8 +1,35 @@
 # ================================== #
 # Source Dedicated Watchdog by dr.N0 #
 # ================================== #
+# --- Console Appearance ---
+$Host.UI.RawUI.BackgroundColor = "Black"
+$Host.UI.RawUI.ForegroundColor = "DarkRed"
+Clear-Host
+Write-Host "            +######################+     " -ForegroundColor DarkRed
+Write-Host "        ########################++####   " -ForegroundColor DarkRed
+Write-Host "     +######++-----++#########-+++-+##   " -ForegroundColor DarkRed
+Write-Host "   +#####---+-----------#####--###++##   " -ForegroundColor DarkRed
+Write-Host "  ####+----+##------------##+------###   " -ForegroundColor DarkRed
+Write-Host " +###------####------+#+---+#########+   " -ForegroundColor DarkRed
+Write-Host "####+-----+#####++-+###-----+#######+    " -ForegroundColor DarkRed
+Write-Host "###+------+######+++###------######+     " -ForegroundColor DarkRed
+Write-Host "###+------######+++++#+------######      " -ForegroundColor DarkRed
+Write-Host "###+-------+#+++###++#+------+####       " -ForegroundColor DarkRed
+Write-Host "###+-------++++++#+++#+------#####       " -ForegroundColor DarkRed
+Write-Host "####------+#++++++++####+---+###+        " -ForegroundColor DarkRed
+Write-Host " ####----+##+++++++######--+####         " -ForegroundColor DarkRed
+Write-Host "  ####+--++#+++++++###+---+####          " -ForegroundColor DarkRed
+Write-Host "   #####----------------+####+           " -ForegroundColor DarkRed
+Write-Host "     ######+---------######+             " -ForegroundColor DarkRed
+Write-Host "       +#################+               " -ForegroundColor DarkRed
+Write-Host "           ##########+                   " -ForegroundColor DarkRed                               
+Write-Host "=========================================" -ForegroundColor DarkRed
+Write-Host "      SOURCE DEDICATED WATCHDOG          " -ForegroundColor Red
+Write-Host "      Brought to you by dr.N0            " -ForegroundColor Red
+Write-Host "=========================================" -ForegroundColor DarkRed
+
 trap {
-    Write-Host "FATAL ERROR: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "FATAL ERROR: $($_.Exception.Message)" -ForegroundColor Blue
     Write-Host "Press ENTER to exit..."
     Read-Host
     exit
@@ -35,9 +62,83 @@ $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $My
 # --- Dashboard Console Injection ---
 . (Join-Path $scriptRoot "core\dashboard.ps1")
 
-Write-Host "WATCHDOG STARTING..." -ForegroundColor Green
+Write-Host "WATCHDOG STARTING..." -ForegroundColor DarkRed
+Write-Log "Loading core files..." gray
 
 # --- History / status / players ---
+function Get-ServerBindIpFromArgs {
+    param([string]$Args)
+
+    if ([string]::IsNullOrWhiteSpace($Args)) {
+        return $null
+    }
+
+    if ($Args -match '(?i)(?:^|\s)-ip\s+([0-9\.]+)(?:\s|$)') {
+        return $Matches[1]
+    }
+
+    if ($Args -match '(?i)(?:^|\s)\+ip\s+([0-9\.]+)(?:\s|$)') {
+        return $Matches[1]
+    }
+
+    return $null
+}
+
+function Get-ServerLaunchPortFromArgs {
+    param([string]$Args)
+
+    if ([string]::IsNullOrWhiteSpace($Args)) {
+        return $null
+    }
+
+    if ($Args -match '(?i)(?:^|\s)-port\s+(\d+)(?:\s|$)') {
+        return [int]$Matches[1]
+    }
+
+    if ($Args -match '(?i)(?:^|\s)\+port\s+(\d+)(?:\s|$)') {
+        return [int]$Matches[1]
+    }
+
+    return $null
+}
+
+function Get-FallbackUdpIp {
+    param($server)
+
+    $ip = $null
+    $port = $null
+
+    $argIp = Get-ServerBindIpFromArgs -Args $server.Args
+    if (-not [string]::IsNullOrWhiteSpace($argIp)) {
+        $ip = $argIp
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($server.RconHost)) {
+        $ip = $server.RconHost
+    }
+
+    $argPort = Get-ServerLaunchPortFromArgs -Args $server.Args
+    if ($null -ne $argPort) {
+        $port = $argPort
+    }
+    elseif ($server.Port) {
+        $port = [int]$server.Port
+    }
+    elseif ($server.RconPort) {
+        $port = [int]$server.RconPort
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($ip) -and $port) {
+        return "$ip`:$port"
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($ip)) {
+        return $ip
+    }
+
+    return ""
+}
+
+
 function Update-Status {
     $status = @()
 	
@@ -64,22 +165,92 @@ function Update-Status {
             Edicts      = ""
         }
 
-        if ($proc -and -not [string]::IsNullOrWhiteSpace($server.RconPassword)) {
-            try {
-                $rawStatus = Invoke-SourceRcon `
-                    -rconHost $server.RconHost `
-                    -Port $server.RconPort `
-                    -Password $server.RconPassword `
-                    -Command "status"
+			$rconReachable = $false
+			$rconError = ""
 
-                $parsedStatus = Parse-ServerStatus -text $rawStatus
-            } catch {}
-        }
+			if ($proc -and -not [string]::IsNullOrWhiteSpace($server.RconPassword)) {
+				try {
+					$rawStatus = Invoke-SourceRcon `
+						-rconHost $server.RconHost `
+						-Port $server.RconPort `
+						-Password $server.RconPassword `
+						-Command "status"
+
+					$parsedStatus = Parse-ServerStatus -text $rawStatus
+					$rconReachable = $true
+
+				} catch {
+					$rconError = $_.Exception.Message
+
+					Write-Log "RCON STATUS FAILED [$($server.Name)] Host=$($server.RconHost) Port=$($server.RconPort) :: $rconError"
+				}
+			}
+			$a2s = $null
+
+			try {
+				# FORCE LOCAL QUERY FIRST (critical for Source engine reliability)
+				$queryHost = if ($server.Name -eq "gmod") { 
+					$server.RconHost 
+				} else { 
+					"127.0.0.1" 
+				}
+
+				# fallback if needed (rare case multi-node later)
+				if (-not $queryHost) {
+					$queryHost = Get-ServerBindIpFromArgs -Args $server.Args
+				}
+
+				if ([string]::IsNullOrWhiteSpace($queryHost)) {
+					$queryHost = $server.RconHost
+				}
+
+				$a2s = $null
+
+				$portsToTry = @()
+
+				# primary guesses
+				$portsToTry += $server.Port
+				$portsToTry += ($server.Port + 1)
+				$portsToTry += ($server.Port - 1)
+
+				# wider scan (handles GMOD auto-shift)
+				for ($i = 2; $i -le 15; $i++) {
+					$portsToTry += ($server.Port + $i)
+				}
+
+				# common fallbacks
+				$portsToTry += 27015
+				$portsToTry += 27016
+
+				$portsToTry = $portsToTry | Where-Object { $_ -gt 0 } | Select-Object -Unique
+
+				foreach ($p in $portsToTry) {
+					$result = Get-SourceA2SInfo -Host $queryHost -Port $p
+
+					if ($result -and $result.Reachable) {
+						$a2s = $result
+
+						Write-Log "A2S SUCCESS [$($server.Name)] using port $p"
+						break
+					} else {
+						Write-Log "A2S attempt failed [$($server.Name)] port $p"
+					}
+				}
+				if ($a2s -and $a2s.Reachable) {
+					Write-Log "A2S OK [$($server.Name)] Host=$queryHost Port=$p | $($a2s.Name) | $($a2s.Map) | Players=$($a2s.Players)/$($a2s.MaxPlayers)"
+				}
+				elseif ($a2s -and -not $a2s.Reachable) {
+				Write-Log "A2S FAIL [$($server.Name)] Host=$queryHost Port=$p"				}
+			} catch {
+				# intentionally silent for now (safe stage)
+			}
+		$fallbackUdpIp = Get-FallbackUdpIp -server $server
 
         $status += [PSCustomObject]@{
             Name         = $server.Name
             Port         = $server.Port
             Exe          = $server.Exe
+			RconHost 	 = $server.RconHost
 			UseVgui      = Get-ServerUseVgui -server $server
             LockOut      = Get-ServerLockOut -server $server
 			OriginalArgs = $server.Args
@@ -97,13 +268,33 @@ function Update-Status {
 
             PID          = if ($proc) { $proc.Id } else { $null }
 
-            Hostname     = $parsedStatus.Hostname
-            UdpIp        = $parsedStatus.UdpIp
+			Hostname = if (-not [string]::IsNullOrWhiteSpace($parsedStatus.Hostname)) {
+				$parsedStatus.Hostname
+			} elseif ($a2s -and $a2s.Reachable) {
+				$a2s.Name
+			} else {
+				""
+			}
+            UdpIp        = if (-not [string]::IsNullOrWhiteSpace($parsedStatus.UdpIp)) { $parsedStatus.UdpIp } else { $fallbackUdpIp }
             SteamId      = $parsedStatus.SteamId
-            Map          = $parsedStatus.Map
-            PlayersInfo  = $parsedStatus.PlayersInfo
+			Map = if (-not [string]::IsNullOrWhiteSpace($parsedStatus.Map)) {
+			$parsedStatus.Map
+			} elseif ($a2s -and $a2s.Reachable) {
+				$a2s.Map
+			} else {
+				""
+			}
+			PlayersInfo = if (-not [string]::IsNullOrWhiteSpace($parsedStatus.PlayersInfo)) {
+				$parsedStatus.PlayersInfo
+			} elseif ($a2s -and $a2s.Reachable) {
+				"$($a2s.Players) humans, $($a2s.Bots) bots ($($a2s.MaxPlayers) max)"
+			} else {
+				""
+			}
             Edicts       = $parsedStatus.Edicts
             Version      = $parsedStatus.Version
+			RconReachable = $rconReachable
+			RconError     = $rconError
 			RconStatus = if ($rconStatus.ContainsKey($server.Name)) { $rconStatus[$server.Name].Status } else { $null }
 			RconTime   = if ($rconStatus.ContainsKey($server.Name)) { $rconStatus[$server.Name].Time } else { $null }
 
@@ -364,17 +555,25 @@ function Ensure-DashboardHealthy {
 # ================================
 # START
 # ================================
-Write-Log "WATCHDOG STARTED"
+Write-Log "WATCHDOG STARTED" Red
+Write-Log "Checking data files..." gray
 Ensure-DataFiles
+Write-Log "Loading launch preferences..." gray
 Initialize-LaunchPrefs
+Write-Log "Scanning configured servers..." gray
 Update-Status
+Write-Log "Building history cache..." gray
 Update-History
+Write-Log "Scanning player lists..." gray
 Update-Players
+Write-Log "Creating dashboard redirect file..." gray
 Ensure-DashboardRedirectFile
+Write-Log "Starting dashboard web server on port $dashboardPort..." gray
 Start-Dashboard
+Write-Log "Validating dashboard health..." gray
 Ensure-DashboardHealthy
-
-Write-Log "Startup validation phase..."
+Write-Log "Dashboard startup phase complete." Red
+Write-Log "Startup validation phase..." white
 
 foreach ($s in $servers) {
 
