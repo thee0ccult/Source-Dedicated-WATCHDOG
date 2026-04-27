@@ -80,6 +80,70 @@ function Start-Dashboard {
                 $Response.OutputStream.Close()
             }
 
+
+            function ConvertTo-JsonStringLiteral {
+                param([AllowNull()][string]$Value)
+
+                if ($null -eq $Value) {
+                    return 'null'
+                }
+
+                return ($Value | ConvertTo-Json -Compress)
+            }
+
+            function Get-ServerMapListJson {
+                param(
+                    [Parameter(Mandatory = $true)][string]$ServerName,
+                    [Parameter(Mandatory = $true)]$Servers
+                )
+
+                $server = $Servers | Where-Object { $_.Name -eq $ServerName } | Select-Object -First 1
+
+                if ($null -eq $server) {
+                    return '{"ok":false,"error":"Unknown server name."}'
+                }
+
+                $gameFolder = $null
+                try {
+                    $gameMatch = [regex]::Match([string]$server.Args, '(?i)(?:^|\s)-game\s+("?)([^"\s]+)\1')
+                    if ($gameMatch.Success) {
+                        $gameFolder = $gameMatch.Groups[2].Value
+                    }
+                } catch {}
+
+                if ([string]::IsNullOrWhiteSpace($gameFolder)) {
+                    return '{"ok":false,"error":"Unable to determine game folder from server Args."}'
+                }
+
+                $serverRoot = Split-Path -Path ([string]$server.Path) -Parent
+                $mapFolder = Join-Path (Join-Path $serverRoot $gameFolder) "maps"
+
+                if (-not (Test-Path -LiteralPath $mapFolder -PathType Container)) {
+                    $mapFolderJson = ConvertTo-JsonStringLiteral $mapFolder
+                    return "{""ok"":false,""error"":""Maps folder was not found."",""mapFolder"":$mapFolderJson}"
+                }
+
+                try {
+                    $maps = @(Get-ChildItem -LiteralPath $mapFolder -Filter "*.bsp" -File -ErrorAction Stop |
+                        Sort-Object Name |
+                        ForEach-Object { $_.Name })
+
+                    $payload = [PSCustomObject]@{
+                        ok        = $true
+                        server    = $ServerName
+                        mapFolder = $mapFolder
+                        count     = $maps.Count
+                        maps      = $maps
+                    }
+
+                    return ($payload | ConvertTo-Json -Depth 5 -Compress)
+                } catch {
+                    $errorJson = ConvertTo-JsonStringLiteral $_.Exception.Message
+                    $mapFolderJson = ConvertTo-JsonStringLiteral $mapFolder
+                    return "{""ok"":false,""error"":$errorJson,""mapFolder"":$mapFolderJson}"
+                }
+            }
+
             try {
                 $listener.Start()
                 Write-Output "Dashboard listener started OK"
@@ -895,6 +959,15 @@ if ($path -ne "/api/toggle-remote" -and $path -ne "/api/remote-status") {
                                     $res.OutputStream.Write($bytes, 0, $bytes.Length)
                                 }
                             }
+                            "/api/maps" {
+                                $serverName = [string]$req.QueryString["server"]
+                                $json = Get-ServerMapListJson -ServerName $serverName -Servers $servers
+
+                                $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+                                $res.ContentType = "application/json; charset=utf-8"
+                                $res.OutputStream.Write($bytes, 0, $bytes.Length)
+                            }
+
                             "/api/history" {
                                 $json = if (Test-Path $historyPath) {
                                     $raw = Get-Content -Path $historyPath -Raw

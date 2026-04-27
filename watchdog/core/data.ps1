@@ -58,14 +58,79 @@ $script:scriptStartTime = Get-Date
 # --- Logging ---
 function Write-Log {
     param(
-        [string]$msg,
-        [ConsoleColor]$Color = "Gray"
+        [string]$Message,
+        [string]$Color = "Gray"
     )
 
-    $line = "$((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')) - $msg"
+    $timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+    $line = "$timestamp - $Message"
 
-    $line | Out-File -Append -FilePath $logFile -Encoding UTF8
-    Write-Host $line -ForegroundColor $Color
+    # ALWAYS write to file (no change)
+    Add-Content -Path $logFile -Value $line
+
+	# ===============================
+	# LOG FILE SIZE LIMITER
+	# ===============================
+
+	if (-not $global:LastLogTrim -or ((Get-Date) - $global:LastLogTrim).TotalSeconds -gt 43200) {
+
+    $global:LastLogTrim = Get-Date
+
+    $maxLines = 5000
+
+    try {
+        $lines = Get-Content -Path $logFile -ErrorAction Stop
+        if ($lines.Count -gt $maxLines) {
+            $lines = $lines[-$maxLines..-1]
+            Set-Content -Path $logFile -Value $lines -Encoding UTF8
+        }
+    } catch {}
+}
+	
+    # ===============================
+    # SMART CONSOLE FILTERING
+    # ===============================
+
+    if (-not $global:ConsoleState) {
+        $global:ConsoleState = @{}
+    }
+
+    $isFailure = $Message -match "FAILED|ERROR|DOWN"
+    $isStartup = $Message -match "WATCHDOG STARTED|Loading core files|STARTING|startup"
+    $isDiscovery = $Message -match "DISCOVERED|LOCKED"
+    $isCacheSpam = $Message -match "A2S CACHE"
+
+    # ALWAYS show failures
+    if ($isFailure) {
+        Write-Host $line -ForegroundColor Red
+        return
+    }
+
+    # ALWAYS show startup phase
+    if ($isStartup) {
+        Write-Host $line -ForegroundColor $Color
+        return
+    }
+
+    # Show discovery ONCE per server
+    if ($isDiscovery) {
+        if (-not $global:ConsoleState.ContainsKey($Message)) {
+            $global:ConsoleState[$Message] = $true
+            Write-Host $line -ForegroundColor White
+        }
+        return
+    }
+
+    # SUPPRESS repetitive cache spam
+    if ($isCacheSpam) {
+        return
+    }
+
+    # OPTIONAL: suppress everything else unless first time
+    if (-not $global:ConsoleState.ContainsKey($Message)) {
+        $global:ConsoleState[$Message] = $true
+        Write-Host $line -ForegroundColor $Color
+    }
 }
 
 # --- File initialization ---

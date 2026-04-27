@@ -65,6 +65,16 @@ $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $My
 Write-Host "WATCHDOG STARTING..." -ForegroundColor DarkRed
 Write-Log "Loading core files..." gray
 
+# --- RCON failure tracking (GLOBAL, persists during runtime) ---
+if (-not $global:RconFailureState) {
+    $global:RconFailureState = @{}
+}
+
+# --- A2S endpoint cache (GLOBAL, persists during runtime) ---
+if (-not $global:A2SPortCache) {
+    $global:A2SPortCache = @{}
+}
+
 # --- History / status / players ---
 function Get-ServerBindIpFromArgs {
     param([string]$Args)
@@ -139,6 +149,47 @@ function Get-FallbackUdpIp {
 }
 
 
+
+function Resolve-DisplayUdpIp {
+    param(
+        $server,
+        $parsedUdpIp
+    )
+
+    $fallback = Get-FallbackUdpIp -server $server
+
+    if ([string]::IsNullOrWhiteSpace($parsedUdpIp)) {
+        return $fallback
+    }
+
+    # Source sometimes reports hidden/unknown bind info as ?.?.?.?:?
+    # Keep dashboard widgets useful by showing the configured public IP:port instead.
+    if ($parsedUdpIp -match '\?') {
+        if ($parsedUdpIp -match '(?i)public\s+IP\s+from\s+Steam\s*:\s*([0-9\.]+)') {
+            $publicIp = $Matches[1]
+            $port = Get-ServerLaunchPortFromArgs -Args $server.Args
+            if ($null -eq $port -and $server.Port) { $port = [int]$server.Port }
+            if ($port) { return "$publicIp`:$port" }
+            return $publicIp
+        }
+
+        return $fallback
+    }
+
+    # Normalize "x.x.x.x:y (public IP from Steam: z.z.z.z)" to the configured public endpoint
+    # when the reported bind endpoint is unusable or local-only.
+    if ($parsedUdpIp -match '^(0\.0\.0\.0|127\.0\.0\.1|localhost)(?::\d+)?') {
+        return $fallback
+    }
+
+    return $parsedUdpIp
+}
+
+# --- CACHE LAST GOOD RCON STATUS ---
+if (-not $global:LastGoodRconData) {
+    $global:LastGoodRconData = @{}
+}
+
 function Update-Status {
     $status = @()
 	
@@ -165,10 +216,25 @@ function Update-Status {
             Edicts      = ""
         }
 
-			$rconReachable = $false
-			$rconError = ""
+		$rconReachable = $false
+		$rconError = ""
+		$serverName = $server.Name
 
-			if ($proc -and -not [string]::IsNullOrWhiteSpace($server.RconPassword)) {
+		# --- HARD SKIP: DO NOT TOUCH RCON IF FAILED ---
+		if ($global:RconFailureState.ContainsKey($serverName) -and
+			$global:RconFailureState[$serverName] -eq "FAILED") {
+
+			$rconError = "Suppressed (RCON disabled after failure)"
+			$rconReachable = $false
+
+		}
+		else {
+
+			if ($proc -and 
+			-not [string]::IsNullOrWhiteSpace($server.RconPassword) -and
+			-not ($global:RconFailureState.ContainsKey($serverName) -and
+				  $global:RconFailureState[$serverName] -eq "FAILED")) {
+
 				try {
 					$rawStatus = Invoke-SourceRcon `
 						-rconHost $server.RconHost `
@@ -179,78 +245,95 @@ function Update-Status {
 					$parsedStatus = Parse-ServerStatus -text $rawStatus
 					$rconReachable = $true
 
+					# STORE LAST GOOD DATA
+					$global:LastGoodRconData[$serverName] = $parsedStatus
+
+					$global:RconFailureState[$serverName] = "SUCCESS"
+
 				} catch {
 					$rconError = $_.Exception.Message
 
-					Write-Log "RCON STATUS FAILED [$($server.Name)] Host=$($server.RconHost) Port=$($server.RconPort) :: $rconError"
-				}
-			}
-			$a2s = $null
+					# USE LAST GOOD DATA IF AVAILABLE
+					if ($global:LastGoodRconData.ContainsKey($serverName)) {
+						$parsedStatus = $global:LastGoodRconData[$serverName]
+					}
 
-			try {
-				# FORCE LOCAL QUERY FIRST (critical for Source engine reliability)
-				$queryHost = if ($server.Name -eq "gmod") { 
-					$server.RconHost 
-				} else { 
-					"127.0.0.1" 
-				}
+					if (-not $global:RconFailureState.ContainsKey($serverName) -or
+						$global:RconFailureState[$serverName] -ne "FAILED") {
 
-				# fallback if needed (rare case multi-node later)
-				if (-not $queryHost) {
-					$queryHost = Get-ServerBindIpFromArgs -Args $server.Args
-				}
+						Write-Log "RCON STATUS FAILED [$serverName] Host=$($server.RconHost) Port=$($server.RconPort) :: $rconError"
 
-				if ([string]::IsNullOrWhiteSpace($queryHost)) {
-					$queryHost = $server.RconHost
-				}
-
-				$a2s = $null
-
-				$portsToTry = @()
-
-				# primary guesses
-				$portsToTry += $server.Port
-				$portsToTry += ($server.Port + 1)
-				$portsToTry += ($server.Port - 1)
-
-				# wider scan (handles GMOD auto-shift)
-				for ($i = 2; $i -le 15; $i++) {
-					$portsToTry += ($server.Port + $i)
-				}
-
-				# common fallbacks
-				$portsToTry += 27015
-				$portsToTry += 27016
-
-				$portsToTry = $portsToTry | Where-Object { $_ -gt 0 } | Select-Object -Unique
-
-				foreach ($p in $portsToTry) {
-					$result = Get-SourceA2SInfo -Host $queryHost -Port $p
-
-					if ($result -and $result.Reachable) {
-						$a2s = $result
-
-						Write-Log "A2S SUCCESS [$($server.Name)] using port $p"
-						break
-					} else {
-						Write-Log "A2S attempt failed [$($server.Name)] port $p"
+						$global:RconFailureState[$serverName] = "FAILED"
 					}
 				}
-				if ($a2s -and $a2s.Reachable) {
-					Write-Log "A2S OK [$($server.Name)] Host=$queryHost Port=$p | $($a2s.Name) | $($a2s.Map) | Players=$($a2s.Players)/$($a2s.MaxPlayers)"
-				}
-				elseif ($a2s -and -not $a2s.Reachable) {
-				Write-Log "A2S FAIL [$($server.Name)] Host=$queryHost Port=$p"				}
-			} catch {
-				# intentionally silent for now (safe stage)
 			}
+
+		}
+            $a2s = $null
+            $a2sEndpoint = $null
+
+            try {
+                $a2sEndpoint = Resolve-A2SEndpoint -server $server
+
+                if ($a2sEndpoint -and $a2sEndpoint.Reachable) {
+                    $a2s = $a2sEndpoint.Info
+
+                    if ($a2sEndpoint.Cached) {
+                        Write-Log "A2S CACHE [$($server.Name)] Host=$($a2sEndpoint.Host) Port=$($a2sEndpoint.Port) | $($a2s.Name) | $($a2s.Map)"
+                    }
+                    else {
+                        Write-Log "A2S DISCOVERED [$($server.Name)] Host=$($a2sEndpoint.Host) Port=$($a2sEndpoint.Port) | $($a2s.Name) | $($a2s.Map)"
+                    }
+                }
+                else {
+                    Write-Log "A2S DISCOVERY FAILED [$($server.Name)] $($a2sEndpoint.Error)"
+                }
+            }
+            catch {
+                Write-Log "A2S DISCOVERY ERROR [$($server.Name)] $($_.Exception.Message)"
+            }
 		$fallbackUdpIp = Get-FallbackUdpIp -server $server
+
+		# --- COMPUTE RCON DISPLAY STATUS (SAFE OUTSIDE OBJECT) ---
+		$displayRconStatus = $null
+		$displayRconTime = $null
+
+		if ($rconStatus.ContainsKey($server.Name)) {
+
+			$currentStatus = $rconStatus[$server.Name].Status
+
+			if ($currentStatus -eq "RETRYING") {
+				$displayRconStatus = "RETRYING"
+			}
+			elseif ($rconReachable) {
+				$displayRconStatus = "OK"
+			}
+			elseif (-not [string]::IsNullOrWhiteSpace($rconError)) {
+				$displayRconStatus = "FAILED"
+			}
+			else {
+				$displayRconStatus = $currentStatus
+			}
+
+			$displayRconTime = $rconStatus[$server.Name].Time
+		}
+		else {
+			if ($rconReachable) {
+				$displayRconStatus = "OK"
+			}
+			elseif (-not [string]::IsNullOrWhiteSpace($rconError)) {
+				$displayRconStatus = "FAILED"
+			}
+		}
 
         $status += [PSCustomObject]@{
             Name         = $server.Name
             Port         = $server.Port
             Exe          = $server.Exe
 			RconHost 	 = $server.RconHost
+            A2SHost      = if ($a2sEndpoint) { $a2sEndpoint.Host } else { $null }
+            A2SPort      = if ($a2sEndpoint) { $a2sEndpoint.Port } else { $null }
+            A2SCached    = if ($a2sEndpoint) { [bool]$a2sEndpoint.Cached } else { $false }
 			UseVgui      = Get-ServerUseVgui -server $server
             LockOut      = Get-ServerLockOut -server $server
 			OriginalArgs = $server.Args
@@ -275,7 +358,7 @@ function Update-Status {
 			} else {
 				""
 			}
-            UdpIp        = if (-not [string]::IsNullOrWhiteSpace($parsedStatus.UdpIp)) { $parsedStatus.UdpIp } else { $fallbackUdpIp }
+            UdpIp        = Resolve-DisplayUdpIp -server $server -parsedUdpIp $parsedStatus.UdpIp
             SteamId      = $parsedStatus.SteamId
 			Map = if (-not [string]::IsNullOrWhiteSpace($parsedStatus.Map)) {
 			$parsedStatus.Map
@@ -295,9 +378,9 @@ function Update-Status {
             Version      = $parsedStatus.Version
 			RconReachable = $rconReachable
 			RconError     = $rconError
-			RconStatus = if ($rconStatus.ContainsKey($server.Name)) { $rconStatus[$server.Name].Status } else { $null }
-			RconTime   = if ($rconStatus.ContainsKey($server.Name)) { $rconStatus[$server.Name].Time } else { $null }
-
+			RconStatus = $displayRconStatus
+			RconTime   = $displayRconTime
+			
             CPU          = $cpu
             WorkingSetMB = $ram
             LastRestart  = if ($lastRestart[$server.Name]) { $lastRestart[$server.Name].ToString("yyyy-MM-dd HH:mm:ss") } else { $null }
@@ -447,6 +530,21 @@ function Process-CommandQueue {
                         Write-Log "Set LOCK OUT [$($server.Name)] => $lockOut"
                         Update-Status
                     }
+					"retryRcon" {
+					if ($global:RconFailureState.ContainsKey($server.Name)) {
+						$global:RconFailureState.Remove($server.Name)
+					}
+
+                    Clear-A2SPortCache -server $server
+
+                    Write-Log "RCON RETRY REQUESTED [$($server.Name)] - A2S cache cleared"
+
+                    # Optional: reflect instantly in dashboard
+                    $rconStatus[$server.Name] = @{
+                        Status = "RETRYING"
+                        Time   = (Get-Date).ToString("HH:mm:ss")
+                    }
+				}
 "rcon" {
     if (-not [string]::IsNullOrWhiteSpace($cmd.command)) {
         try {
