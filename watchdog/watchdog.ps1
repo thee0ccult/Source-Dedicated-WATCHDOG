@@ -270,28 +270,43 @@ function Update-Status {
 
 		}
             $a2s = $null
-            $a2sEndpoint = $null
+			$a2sEndpoint = $null
 
-            try {
-                $a2sEndpoint = Resolve-A2SEndpoint -server $server
+			try {
+				# Strict per-server A2S lookup.
+				# Do NOT scan neighboring/common ports here, because multiple Source servers share the same IP.
+				# Scanning nearby ports can attach fof -> dods, dods -> neo, nd -> anh, etc.
 
-                if ($a2sEndpoint -and $a2sEndpoint.Reachable) {
-                    $a2s = $a2sEndpoint.Info
+				$queryHost = $server.RconHost
 
-                    if ($a2sEndpoint.Cached) {
-                        Write-Log "A2S CACHE [$($server.Name)] Host=$($a2sEndpoint.Host) Port=$($a2sEndpoint.Port) | $($a2s.Name) | $($a2s.Map)"
-                    }
-                    else {
-                        Write-Log "A2S DISCOVERED [$($server.Name)] Host=$($a2sEndpoint.Host) Port=$($a2sEndpoint.Port) | $($a2s.Name) | $($a2s.Map)"
-                    }
-                }
-                else {
-                    Write-Log "A2S DISCOVERY FAILED [$($server.Name)] $($a2sEndpoint.Error)"
-                }
-            }
-            catch {
-                Write-Log "A2S DISCOVERY ERROR [$($server.Name)] $($_.Exception.Message)"
-            }
+				if ([string]::IsNullOrWhiteSpace($queryHost)) {
+					$queryHost = Get-ServerBindIpFromArgs -Args $server.Args
+				}
+
+				if ([string]::IsNullOrWhiteSpace($queryHost)) {
+					$queryHost = "127.0.0.1"
+				}
+
+				$queryPort = [int]$server.Port
+
+				$a2s = Get-SourceA2SInfo -Host $queryHost -Port $queryPort
+
+				if ($a2s -and $a2s.Reachable) {
+					$a2sEndpoint = [PSCustomObject]@{
+						Host   = $queryHost
+						Port   = $queryPort
+						Cached = $false
+					}
+
+					Write-Log "A2S OK [$($server.Name)] Host=$queryHost Port=$queryPort | $($a2s.Name) | $($a2s.Map) | Players=$($a2s.Players)/$($a2s.MaxPlayers)"
+				}
+				else {
+					Write-Log "A2S FAIL [$($server.Name)] Host=$queryHost Port=$queryPort"
+				}
+			}
+			catch {
+				Write-Log "A2S ERROR [$($server.Name)] $($_.Exception.Message)"
+			}
 		$fallbackUdpIp = Get-FallbackUdpIp -server $server
 
 		# --- COMPUTE RCON DISPLAY STATUS (SAFE OUTSIDE OBJECT) ---
