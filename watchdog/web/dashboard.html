@@ -639,19 +639,23 @@ function renderPlayers() {
 					</tr>
 				</thead>
 				<tbody>
-					${entry.Players.map(p => `
+					${entry.Players.map(p => {
+						const isBot = (p.SteamId === "BOT");
+
+						return `
 						<tr>
 							<td>
-								<div>${p.Name}</div>
+								<div>${isBot ? '[BOT] ' + p.Name : p.Name}</div>
 								<div style="font-size:10px;color:#888">
-									${p.SteamId ?? ''}
+									${isBot ? 'BOT' : (p.SteamId ?? '')}
 								</div>
 							</td>
 							<td>${p.Connected}</td>
-							<td>${p.Ping}</td>
-							<td>${p.Loss}</td>
+							<td>${isBot ? '-' : p.Ping}</td>
+							<td>${isBot ? '-' : p.Loss}</td>
 						</tr>
-					`).join('')}
+						`;
+					}).join('')}
 				</tbody>
             </table>`;
         }

@@ -96,22 +96,13 @@ function Invoke-SourceRcon {
     $client.SendTimeout = 5000
 
     try {
-        $portsToTry = @($Port, $Port + 1, $Port + 2, $Port + 3, $Port + 4)
-
-		$connected = $false
-
-		foreach ($p in $portsToTry) {
+        # --- STRICT PORT LOCK ---
 			try {
-				$client.Connect($rconHost, $p)
-				$Port = $p
-				$connected = $true
-				break
-			} catch {}
-		}
-
-		if (-not $connected) {
-			throw "RCON failed: could not connect on any port near $Port"
-		}
+				$client.Connect($rconHost, $Port)
+			}
+			catch {
+				throw "RCON failed: could not connect to $rconHost`:$Port"
+			}
         $stream = $client.GetStream()
 
         # =========================
@@ -232,21 +223,46 @@ function Get-ServerPlayers {
                 $players = @()
                 $lines = ($statusText -split "`r?`n")
 
-                foreach ($line in $lines) {
-                    if ($line -match '^\#\s*(\d+)\s+"([^"]+)"\s+([^\s]+)\s+([0-9:]+)\s+(\d+)\s+(\d+)') {
-                        $players += [PSCustomObject]@{
-                            UserId    = $Matches[1]
-                            Name      = $Matches[2]
-                            SteamId   = $Matches[3]
-                            Connected = $Matches[4]
-                            Ping      = $Matches[5]
-                            Loss      = $Matches[6]
-                            Score     = $null
-                            Source    = "RCON"
-                            Raw       = $line.Trim()
-                        }
-                    }
-                }
+				foreach ($line in $lines) {
+
+					# --- HUMAN PLAYERS ---
+					if ($line -match '^\#\s*(\d+)\s+"([^"]+)"\s+([^\s]+)\s+([0-9:]+)\s+(\d+)\s+(\d+)') {
+
+						$players += [PSCustomObject]@{
+							UserId    = $Matches[1]
+							Name      = $Matches[2]
+							SteamId   = $Matches[3]
+							Connected = $Matches[4]
+							Ping      = [int]$Matches[5]
+							Loss      = [int]$Matches[6]
+							Score     = $null
+							IsBot     = $false
+							Source    = "RCON"
+							Raw       = $line.Trim()
+						}
+
+						continue
+					}
+
+					# --- BOT PLAYERS (FIX) ---
+					if ($line -match '^\#\s*(\d+)\s+"([^"]+)"\s+BOT') {
+
+						$players += [PSCustomObject]@{
+							UserId    = $Matches[1]
+							Name      = $Matches[2]
+							SteamId   = "BOT"
+							Connected = ""
+							Ping      = 0
+							Loss      = 0
+							Score     = $null
+							IsBot     = $true
+							Source    = "RCON"
+							Raw       = $line.Trim()
+						}
+
+						continue
+					}
+				}
 
                 return [PSCustomObject]@{
                     Server    = $server.Name
@@ -272,45 +288,59 @@ function Get-ServerPlayers {
     }
 
     try {
-        $endpoint = Resolve-A2SEndpoint -server $server
-
-        if (-not $endpoint.Reachable) {
-            return [PSCustomObject]@{
-                Server    = $server.Name
-                Port      = $server.Port
-                QueryPort = $endpoint.Port
-                Enabled   = $true
-                Source    = if ($rconWasTried) { "RCON/A2S" } else { "A2S" }
-                Message   = "$fallbackMessage A2S discovery failed: $($endpoint.Error)"
-                Players   = @()
-                RawStatus = $null
-            }
+        # STEP 1 FIX:
+        # Player monitoring must query the exact configured server port.
+        # Do NOT use Resolve-A2SEndpoint here because it scans neighboring ports.
+        # With multiple Source servers on the same IP, that can attach CNC/ZPS player
+        # widgets to CSS on 27018 after long sessions or restarts.
+        $queryHost = Get-A2SQueryHost -server $server
+        if ([string]::IsNullOrWhiteSpace($queryHost)) {
+            $queryHost = "127.0.0.1"
         }
 
-$playerResult = Get-SourceA2SPlayers -QueryHost $endpoint.Host -Port ([int]$endpoint.Port)
+        $queryPort = [int]$server.Port
+
+        $playerResult = Get-SourceA2SPlayers -QueryHost $queryHost -Port $queryPort
 
         if ($playerResult -and $playerResult.Reachable) {
+            # Hard-copy the player rows so no array/object reference can bleed into another server.
+            $players = @()
+            foreach ($p in @($playerResult.Players)) {
+                $players += [PSCustomObject]@{
+                    UserId    = $p.UserId
+                    Name      = $p.Name
+                    SteamId   = $p.SteamId
+                    Connected = $p.Connected
+                    Ping      = $p.Ping
+                    Loss      = $p.Loss
+                    Score     = $p.Score
+                    Duration  = $p.Duration
+                    Source    = $p.Source
+                    Raw       = $p.Raw
+                }
+            }
+
             return [PSCustomObject]@{
                 Server    = $server.Name
                 Port      = $server.Port
-                QueryPort = $endpoint.Port
+                QueryPort = $queryPort
+                QueryHost = $queryHost
                 Enabled   = $true
                 Source    = "A2S"
                 Message   = $fallbackMessage
-                Players   = @($playerResult.Players)
+                Players   = $players
                 RawStatus = $null
             }
         }
-
-        Clear-A2SPortCache -server $server
 
         return [PSCustomObject]@{
             Server    = $server.Name
             Port      = $server.Port
-            QueryPort = $endpoint.Port
+            QueryPort = $queryPort
+            QueryHost = $queryHost
             Enabled   = $true
             Source    = if ($rconWasTried) { "RCON/A2S" } else { "A2S" }
-            Message   = if ($playerResult) { "$fallbackMessage A2S_PLAYER failed on port $($endpoint.Port): $($playerResult.Error)" } else { "$fallbackMessage A2S_PLAYER failed on port $($endpoint.Port)." }
+            Message   = if ($playerResult) { "$fallbackMessage A2S_PLAYER failed on exact port $queryPort`: $($playerResult.Error)" } else { "$fallbackMessage A2S_PLAYER failed on exact port $queryPort." }
             Players   = @()
             RawStatus = $null
         }
