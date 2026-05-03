@@ -75,6 +75,12 @@ if (-not $global:A2SPortCache) {
     $global:A2SPortCache = @{}
 }
 
+# --- JSON memory buffer fallback ---
+# Keeps last-known-good JSON in memory if Windows temporarily locks a file.
+if (-not $script:JsonMemoryBuffer) {
+    $script:JsonMemoryBuffer = @{}
+}
+
 # --- History / status / players ---
 function Get-ServerBindIpFromArgs {
     param([string]$Args)
@@ -148,7 +154,53 @@ function Get-FallbackUdpIp {
     return ""
 }
 
+function Save-JsonAtomicWithMemory {
+    param(
+        [Parameter(Mandatory=$true)][string]$Path,
+        [Parameter(Mandatory=$true)]$Data,
+        [Parameter(Mandatory=$true)][int]$Depth,
+        [Parameter(Mandatory=$true)][string]$Label
+    )
 
+    $tempFile = "$Path.tmp"
+
+    try {
+        # Clean any leftover temp file
+        Remove-Item $tempFile -ErrorAction SilentlyContinue
+
+        # Convert safely
+        $json = $Data | ConvertTo-Json -Depth $Depth
+
+        if ([string]::IsNullOrWhiteSpace($json)) {
+            throw "$Label JSON was empty"
+        }
+
+        # Write to temp first
+        [System.IO.File]::WriteAllText($tempFile, $json, [System.Text.Encoding]::UTF8)
+
+        # Atomic replace
+        Move-Item -Path $tempFile -Destination $Path -Force
+
+        # Store memory backup
+        $script:JsonMemoryBuffer[$Path] = $json
+    }
+    catch {
+        Write-Log "$Label WRITE FAILED: $($_.Exception.Message)"
+
+        # Attempt recovery from memory
+        if ($script:JsonMemoryBuffer.ContainsKey($Path)) {
+            try {
+                [System.IO.File]::WriteAllText($tempFile, $script:JsonMemoryBuffer[$Path], [System.Text.Encoding]::UTF8)
+                Move-Item -Path $tempFile -Destination $Path -Force
+
+                Write-Log "$Label restored from memory buffer"
+            }
+            catch {
+                Write-Log "$Label RECOVERY FAILED"
+            }
+        }
+    }
+}
 
 function Resolve-DisplayUdpIp {
     param(
@@ -404,7 +456,11 @@ function Update-Status {
         }
     }
 
-    $status | ConvertTo-Json -Depth 5 | Set-Content -Path $statusFile -Encoding UTF8
+Save-JsonAtomicWithMemory `
+    -Path $statusFile `
+    -Data $status `
+    -Depth 5 `
+    -Label "STATUS"
 }
 
 function Update-History {
@@ -477,7 +533,11 @@ if (Test-Path $historyFile) {
         }
     }
 
-    $out | ConvertTo-Json -Depth 8 | Set-Content -Path $historyFile -Encoding UTF8
+Save-JsonAtomicWithMemory `
+    -Path $historyFile `
+    -Data $out `
+    -Depth 8 `
+    -Label "HISTORY"
 }
 
 function Update-Players {
@@ -486,7 +546,11 @@ function Update-Players {
         $allPlayers += Get-ServerPlayers -server $server
     }
 
-    $allPlayers | ConvertTo-Json -Depth 8 | Set-Content -Path $playersFile -Encoding UTF8
+Save-JsonAtomicWithMemory `
+    -Path $playersFile `
+    -Data $allPlayers `
+    -Depth 8 `
+    -Label "PLAYERS"
 }
 
 # --- Commands from dashboard ---

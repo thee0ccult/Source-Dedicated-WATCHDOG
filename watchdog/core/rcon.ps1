@@ -222,22 +222,90 @@ function Get-ServerPlayers {
 
                 $players = @()
                 $lines = ($statusText -split "`r?`n")
-
+Write-Log "DEBUG [$($server.Name)] RAW STATUS:`n$statusText"
 				foreach ($line in $lines) {
 
 					# --- HUMAN PLAYERS ---
-					if ($line -match '^\#\s*(\d+)\s+"([^"]+)"\s+([^\s]+)\s+([0-9:]+)\s+(\d+)\s+(\d+)') {
+					if ($line -match '^\#\s*(\d+)\s+(?:\d+\s+)?"([^"]+)"\s+([^\s]*)\s*([0-9:]+)?\s*(\d+)?\s*(\d+)?') {
+
+					$players += [PSCustomObject]@{
+						UserId    = $Matches[1]
+						Name      = $Matches[2]
+						SteamId   = $Matches[3]
+						Connected = if ($Matches[4]) { $Matches[4] } else { "" }
+						Ping      = if ($Matches[5]) { [int]$Matches[5] } else { 0 }
+						Loss      = if ($Matches[6]) { [int]$Matches[6] } else { 0 }
+						Score     = $null
+						IsBot     = ($Matches[3] -eq "BOT")
+						Source    = "RCON"
+						Raw       = $line.Trim()
+					}
+
+					continue
+				}
+
+					# --- FALLBACK: CONTAGION / MODDED PLAYER BLOCK PARSER ---
+					if ($line -match '^Name:\s*(.+)$') {
+
+						$playerName = $Matches[1].Trim()
+
+						# look ahead for SteamID in following lines
+						$steamId = ""
+						$connected = ""
+						$ping = 0
+						$loss = 0
+
+						for ($i = 1; $i -le 10; $i++) {
+							if ($lines.Count -gt ($lines.IndexOf($line) + $i)) {
+								$nextLine = $lines[$lines.IndexOf($line) + $i].Trim()
+
+								if ($nextLine -match '^SteamID:\s*(.+)$') {
+									$steamId = $Matches[1].Trim()
+								}
+
+								if ($nextLine -match '^Time:\s*(.+)$') {
+									$connected = $Matches[1].Trim()
+								}
+
+								if ($nextLine -match '^Latency:\s*(\d+)') {
+									$ping = [int]$Matches[1]
+								}
+
+								if ($nextLine -match '^Latency Loss:\s*(\d+)') {
+									$loss = [int]$Matches[1]
+								}
+							}
+						}
+
+						$players += [PSCustomObject]@{
+							UserId    = ""
+							Name      = $playerName
+							SteamId   = $steamId
+							Connected = $connected
+							Ping      = $ping
+							Loss      = $loss
+							Score     = $null
+							IsBot     = $false
+							Source    = "RCON-CONT"
+							Raw       = $line.Trim()
+						}
+
+						continue
+					}
+					
+					# --- L4D / L4D2 PLAYER PARSER (CRITICAL FIX) ---
+					if ($line -match '^\s*(\d+)\s+(.+?)\s+STEAM_') {
 
 						$players += [PSCustomObject]@{
 							UserId    = $Matches[1]
-							Name      = $Matches[2]
-							SteamId   = $Matches[3]
-							Connected = $Matches[4]
-							Ping      = [int]$Matches[5]
-							Loss      = [int]$Matches[6]
+							Name      = $Matches[2].Trim()
+							SteamId   = ""   # L4D often hides it
+							Connected = ""
+							Ping      = 0
+							Loss      = 0
 							Score     = $null
 							IsBot     = $false
-							Source    = "RCON"
+							Source    = "RCON-L4D"
 							Raw       = $line.Trim()
 						}
 
@@ -264,15 +332,52 @@ function Get-ServerPlayers {
 					}
 				}
 
-                return [PSCustomObject]@{
-                    Server    = $server.Name
-                    Port      = $server.Port
-                    Enabled   = $true
-                    Source    = "RCON"
-                    Message   = ""
-                    Players   = $players
-                    RawStatus = $statusText
-                }
+				# If RCON returned ONLY bots or empty, try merging A2S players
+				$hasRealPlayers = ($players | Where-Object { -not $_.IsBot }).Count -gt 0
+
+				if (-not $hasRealPlayers) {
+
+					try {
+						$queryHost = Get-A2SQueryHost -server $server
+						$queryPort = [int]$server.Port
+
+						$a2s = Get-SourceA2SPlayers -QueryHost $queryHost -Port $queryPort
+
+						if ($a2s -and $a2s.Players.Count -gt 0) {
+
+							foreach ($p in $a2s.Players) {
+
+								# avoid duplicates (bots already exist in RCON)
+								if (-not ($players | Where-Object { $_.Name -eq $p.Name })) {
+
+									$players += [PSCustomObject]@{
+										UserId    = $p.UserId
+										Name = if ([string]::IsNullOrWhiteSpace($p.Name)) { "Player_$($p.UserId)" } else { $p.Name }
+										SteamId   = ""
+										Connected = $p.Connected
+										Ping      = $p.Ping
+										Loss      = $p.Loss
+										Score     = $p.Score
+										IsBot     = $false
+										Source    = "A2S-MERGED"
+										Raw       = ""
+									}
+								}
+							}
+						}
+					}
+					catch {}
+				}
+
+				return [PSCustomObject]@{
+					Server    = $server.Name
+					Port      = $server.Port
+					Enabled   = $true
+					Source    = "RCON"
+					Message   = ""
+					Players   = $players
+					RawStatus = $statusText
+				}
             }
             catch {
                 $fallbackMessage = "RCON failed; using A2S_PLAYER fallback. $($_.Exception.Message)"

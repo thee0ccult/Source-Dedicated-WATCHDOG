@@ -801,7 +801,7 @@ html += '</div>';
                 for(let i=0;i<players.length;i++){
                     const p = players[i] || {};
                     html += '<div class="player">';
-					html += '<div>' + (p.name || '') + '</div>';
+					
 					// Convert Steam2 -> SteamID64
 function steamTo64(id){
     try{
@@ -831,7 +831,8 @@ const steamId = (p.steamId || '');
 const steam64 = steamTo64(steamId);
 const profileUrl = steam64 ? ('https://steamcommunity.com/profiles/' + steam64) : '';
 
-html += '<div class="small" style="opacity:0.7; display:flex; align-items:center; gap:6px;">';
+html += '<div style="display:flex; align-items:center; gap:6px;">';
+html += '<span>' + (p.name || '') + '</span>';
 
 if(profileUrl){
     html += '<a href="' + profileUrl + '" target="_blank" ' +
@@ -840,9 +841,11 @@ if(profileUrl){
             'PROFILE</a>';
 }
 
-html += '<span>SteamID: ' + steamId + '</span>';
-html += '</div>';					html += '<div class="small">Ping: ' + (p.ping || '') + ' | Connected: ' + (p.connected || '') + '</div>';
-					html += '</div>';
+html += '</div>';
+
+html += '<div class="small" style="opacity:0.7;">SteamID: ' + steamId + '</div>';
+html += '<div class="small">Ping: ' + (p.ping || '') + ' | Connected: ' + (p.connected || '') + '</div>';
+html += '</div>';
                 }
                 html += '</div>';
             } else {
