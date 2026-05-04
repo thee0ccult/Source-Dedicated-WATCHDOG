@@ -200,7 +200,9 @@ function Get-ServerPlayers {
 
     if (-not $global:RconFailureState) { $global:RconFailureState = @{} }
     if (-not $global:LastGoodRconData) { $global:LastGoodRconData = @{} }
-
+	# --- DEBUG PRINT TRACKING ---
+	if (-not $global:DebugStatusPrinted) { $global:DebugStatusPrinted = @{} }
+	
     $fallbackMessage = ""
     $rconWasTried = $false
 
@@ -222,21 +224,49 @@ function Get-ServerPlayers {
 
                 $players = @()
                 $lines = ($statusText -split "`r?`n")
-Write-Log "DEBUG [$($server.Name)] RAW STATUS:`n$statusText"
+				$key = $server.Name
+
+				# ALWAYS write to FILE ONLY (no console spam)
+				Write-Log "DEBUG [$key] RAW STATUS:`n$statusText" -NoConsole
+
+				# ONLY print ONCE to console
+				if (-not $global:DebugStatusPrinted.ContainsKey($key)) {
+
+					Write-Host "DEBUG [$key] RAW STATUS:`n$statusText" -ForegroundColor DarkGray
+
+					$global:DebugStatusPrinted[$key] = $true
+				}
+				
 				foreach ($line in $lines) {
 
 					# --- HUMAN PLAYERS ---
 					if ($line -match '^\#\s*(\d+)\s+(?:\d+\s+)?"([^"]+)"\s+([^\s]*)\s*([0-9:]+)?\s*(\d+)?\s*(\d+)?') {
 
+					$playerKey = "$($server.Name)|$($Matches[2])"
+
+					if (-not $global:LastGoodSteamIds) {
+						$global:LastGoodSteamIds = @{}
+					}
+
+					$newSteamId = $Matches[3]
+
+					# --- PRESERVE GOOD STEAMID ---
+					if (-not [string]::IsNullOrWhiteSpace($newSteamId)) {
+						$global:LastGoodSteamIds[$playerKey] = $newSteamId
+					}
+					elseif ($global:LastGoodSteamIds.ContainsKey($playerKey)) {
+						$newSteamId = $global:LastGoodSteamIds[$playerKey]
+					}
+
 					$players += [PSCustomObject]@{
 						UserId    = $Matches[1]
 						Name      = $Matches[2]
-						SteamId   = $Matches[3]
+						SteamId   = $newSteamId
 						Connected = if ($Matches[4]) { $Matches[4] } else { "" }
 						Ping      = if ($Matches[5]) { [int]$Matches[5] } else { 0 }
 						Loss      = if ($Matches[6]) { [int]$Matches[6] } else { 0 }
 						Score     = $null
-						IsBot     = ($Matches[3] -eq "BOT")
+						IsBot     = ($newSteamId -eq "BOT")
 						Source    = "RCON"
 						Raw       = $line.Trim()
 					}

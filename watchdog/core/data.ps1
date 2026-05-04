@@ -57,14 +57,19 @@ $script:scriptStartTime = Get-Date
 
 # --- Logging ---
 function Write-Log {
-    param(
-        [string]$Message,
-        [string]$Color = "Gray"
-    )
+	param(
+		[string]$Message,
+		[string]$Color = "Gray",
+		[switch]$NoConsole
+	)
 
     $timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
     $line = "$timestamp - $Message"
-
+	# --- GLOBAL CONSOLE SUPPRESSION ---
+	if ($NoConsole) {
+		Add-Content -Path $logFile -Value $line
+		return
+	}
     # ALWAYS write to file (no change)
     Add-Content -Path $logFile -Value $line
 
