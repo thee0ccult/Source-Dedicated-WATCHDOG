@@ -829,6 +829,37 @@ while ($true) {
                 }
             }
 
+			# ===============================
+			# PERIODIC RCON REFRESH (ANTI-DEGRADATION)
+			# ===============================
+
+			if (-not $global:RconRefreshTimer) {
+				$global:RconRefreshTimer = @{}
+			}
+
+			$now = Get-Date
+
+			foreach ($s in $servers) {
+
+				if (-not $global:RconRefreshTimer.ContainsKey($s.Name)) {
+					$global:RconRefreshTimer[$s.Name] = $now
+					continue
+				}
+
+				$elapsed = ($now - $global:RconRefreshTimer[$s.Name]).TotalMinutes
+
+				if ($elapsed -gt 60) {
+
+					Write-Log "RCON PERIODIC REFRESH [$($s.Name)]"
+
+					if ($global:RconFailureState.ContainsKey($s.Name)) {
+						$global:RconFailureState.Remove($s.Name)
+					}
+
+					$global:RconRefreshTimer[$s.Name] = $now
+				}
+			}
+
             Update-Status
             Update-History
             Update-Players

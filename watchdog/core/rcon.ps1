@@ -222,6 +222,29 @@ function Get-ServerPlayers {
                     -Password $server.RconPassword `
                     -Command "status"
 
+				# ===============================
+				# RCON DATA VALIDATION (CRITICAL)
+				# ===============================
+
+				$validSteamIdFound = $false
+
+				foreach ($line in ($statusText -split "`r?`n")) {
+					if ($line -match 'STEAM_|\[U:\d+:') {
+						$validSteamIdFound = $true
+						break
+					}
+				}
+
+				# If players exist BUT no SteamIDs - RCON DEGRADED
+				if ($statusText -match 'players\s*:\s*[1-9]' -and -not $validSteamIdFound) {
+
+					Write-Log "RCON DEGRADED [$($server.Name)] Missing SteamIDs - forcing reset"
+
+					$global:RconFailureState[$server.Name] = "FAILED"
+
+					throw "RCON degraded (missing SteamIDs)"
+				}
+
                 $players = @()
                 $lines = ($statusText -split "`r?`n")
 				$key = $server.Name
