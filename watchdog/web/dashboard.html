@@ -447,6 +447,48 @@ async function openMapList(server) {
     }
 }
 
+async function clearLogs(server) {
+
+    const confirmed = confirm(
+        'Delete old log files for ' + server + ' ?\n\n' +
+        'The newest active log file will be preserved automatically.'
+    );
+
+    if (!confirmed) return;
+
+    try {
+
+        const res = await api('/api/clear-logs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                server: server
+            })
+        });
+
+        const data = await res.json();
+
+        if (!data.ok) {
+            throw new Error(data.error || 'Unknown error');
+        }
+
+        alert(
+            'Logs cleaned.\n\n' +
+            'Deleted: ' + data.deleted
+        );
+
+    } catch (err) {
+
+        alert(
+            'Failed to clear logs:\n\n' +
+            err.message
+        );
+
+    }
+}
+
 function closeMapList(event) {
     if (event && event.target && event.target.id !== 'mapModal') return;
 
@@ -533,6 +575,10 @@ function renderCards() {
 
 <div class="btns">
     <button type="button" onclick="openMapList('${server.Name}')">[MAP LIST]</button>
+    <button type="button"
+            onclick="clearLogs('${server.Name}')">
+        [CLEAR LOGS]
+    </button>
 </div>
 
 <div class="launchOpts small">

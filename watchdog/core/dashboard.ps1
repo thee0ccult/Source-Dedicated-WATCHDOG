@@ -63,7 +63,8 @@ function Start-Dashboard {
             $listener = New-Object System.Net.HttpListener
             $listener.IgnoreWriteExceptions = $true
             $listener.Prefixes.Add("http://+:$port/")
-
+			Add-Type -AssemblyName Microsoft.VisualBasic
+			
             function Write-WidgetResponse {
                 param(
                     [Parameter(Mandatory = $true)] $Response,
@@ -970,6 +971,125 @@ if ($path -ne "/api/toggle-remote" -and $path -ne "/api/remote-status") {
                                 $res.ContentType = "application/json; charset=utf-8"
                                 $res.OutputStream.Write($bytes, 0, $bytes.Length)
                             }
+
+							"/api/clear-logs" {
+
+								if ($req.HttpMethod -ne "POST") {
+
+									$res.StatusCode = 405
+
+								} else {
+
+									try {
+
+										$reader = New-Object System.IO.StreamReader($req.InputStream)
+										$body = $reader.ReadToEnd()
+										$reader.Close()
+
+										$obj = $body | ConvertFrom-Json
+
+										$serverName = [string]$obj.server
+
+										$server = $servers | Where-Object {
+											$_.Name -eq $serverName
+										} | Select-Object -First 1
+
+										if (-not $server) {
+											throw "Server not found"
+										}
+
+										$serverRoot = Split-Path -Path ([string]$server.Path) -Parent
+
+										$logFolders = Get-ChildItem `
+											-Path $serverRoot `
+											-Directory `
+											-Recurse `
+											-ErrorAction SilentlyContinue |
+											Where-Object {
+												$_.Name -ieq "logs"
+											}
+
+										if (-not $logFolders -or $logFolders.Count -eq 0) {
+											throw "No logs folders found"
+										}
+
+										$deleted = 0
+
+										foreach ($logsPath in $logFolders) {
+
+											$files = Get-ChildItem `
+												-Path $logsPath.FullName `
+												-File `
+												-ErrorAction SilentlyContinue |
+												Sort-Object CreationTime -Descending
+
+											if ($files.Count -le 1) {
+												continue
+											}
+
+											$deleteTargets = $files | Select-Object -Skip 1
+
+											$useRecycleBin = ($deleteTargets.Count -le 250)
+
+											foreach ($file in $deleteTargets) {
+
+												try {
+
+													if ($useRecycleBin) {
+
+														[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
+															$file.FullName,
+															[Microsoft.VisualBasic.FileIO.UIOption]::OnlyErrorDialogs,
+															[Microsoft.VisualBasic.FileIO.RecycleOption]::SendToRecycleBin
+														)
+
+													} else {
+
+														Remove-Item `
+															-LiteralPath $file.FullName `
+															-Force `
+															-ErrorAction Stop
+													}
+
+													$deleted++
+
+												} catch {
+
+													# silently ignore locked files
+
+												}
+											}
+										}
+
+										$json = @{
+											ok = $true
+											deleted = $deleted
+										} | ConvertTo-Json -Compress
+
+										$bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+
+										$res.ContentType = "application/json; charset=utf-8"
+
+										$res.Headers.Add("Connection", "close")
+
+										$res.OutputStream.Write($bytes, 0, $bytes.Length)
+									} catch {
+
+										$json = @{
+											ok = $false
+											error = $_.Exception.Message
+										} | ConvertTo-Json -Compress
+
+										$bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+
+										$res.StatusCode = 500
+										$res.ContentType = "application/json; charset=utf-8"
+
+										$res.Headers.Add("Connection", "close")
+
+										$res.OutputStream.Write($bytes, 0, $bytes.Length)									}
+								}
+							}
 
                             "/api/history" {
                                 $json = if (Test-Path $historyPath) {
