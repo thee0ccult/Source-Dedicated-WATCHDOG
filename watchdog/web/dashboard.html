@@ -211,6 +211,7 @@ button:hover{background:#111111}
 	<button onclick="logout()">[LOGOUT]</button>
 </span>
                 <span id="remoteStatusWrap">
+				    <button onclick="restartWatchdog()">[RESTART]</button>
                     <button onclick="toggleRemote()">[REMOTE]</button>
                     <img id="remoteIcon" src="/off.png" alt="remote">
                     <span id="remoteLabel">OFF</span>
@@ -351,6 +352,20 @@ async function setLockOut(server, lockOut) {
 async function toggleRemote() {
     await api('/api/toggle-remote', { method: 'POST' });
     await refreshRemoteStatus();
+}
+
+async function restartWatchdog() {
+    const ok = confirm('Restart the watchdog PowerShell process now? Dashboard will briefly go offline.');
+    if (!ok) return;
+
+    try {
+        const res = await fetch('/api/restart-watchdog', { method: 'POST' });
+        const text = await res.text();
+
+        alert('Restart API response:\n' + text);
+    } catch (err) {
+        alert('Restart API failed:\n' + err.message);
+    }
 }
 
 async function refreshRemoteStatus() {

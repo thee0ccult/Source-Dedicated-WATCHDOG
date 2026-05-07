@@ -32,6 +32,13 @@ Opening <a href="$target">$target</a>
 "@ | Set-Content -Path $dashboardHtmlPath -Encoding UTF8
 }
 
+$scriptRoot = if ($PSScriptRoot) {
+    Split-Path $PSScriptRoot -Parent
+}
+else {
+    Split-Path -Parent $MyInvocation.MyCommand.Path
+}
+
 function Start-Dashboard {
     $jobName = "SourceDedicatedWatchdogDashboard"
 
@@ -53,9 +60,9 @@ function Start-Dashboard {
 	$loginPage = $dashboardData.Login
 
     Start-Job -Name $jobName `
-        -ArgumentList $dashboardPort, $statusFile, $historyFile, $playersFile, $logoPath, $onIconPath, $offIconPath, $dashboardTitle, $commandQueueFile, $dashboardHtml, $loginPage, $allowRemote, $servers `
+        -ArgumentList $scriptRoot, $dashboardPort, $statusFile, $historyFile, $playersFile, $logoPath, $onIconPath, $offIconPath, $dashboardTitle, $commandQueueFile, $dashboardHtml, $loginPage, $allowRemote, $servers `
         -ScriptBlock {
-            param($port, $statusPath, $historyPath, $playersPath, $logoPath, $onIconPath, $offIconPath, $title, $queuePath, $dashboardHtml, $loginPage, $initialAllowRemote, $servers)
+            param($scriptRoot, $port, $statusPath, $historyPath, $playersPath, $logoPath, $onIconPath, $offIconPath, $title, $queuePath, $dashboardHtml, $loginPage, $initialAllowRemote, $servers)
 
             $allowRemote = [bool]$initialAllowRemote
 			$authToken = [guid]::NewGuid().ToString()
@@ -873,7 +880,7 @@ window.addEventListener('DOMContentLoaded', function(){
                         continue
                     }
 
-# --- AUTH / REMOTE CONTROL ---
+
 # --- AUTH / REMOTE CONTROL ---
 $cookie = $req.Headers["Cookie"]
 
@@ -904,6 +911,52 @@ if (-not $isLocal) {
             continue
         }
     }
+}
+
+if ($path -eq "/api/restart-watchdog") {
+
+    try {
+        $dataDir = Split-Path -Parent $statusPath
+        $restartFlag = Join-Path $dataDir "restart.flag"
+
+        if (-not (Test-Path $dataDir)) {
+            New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
+        }
+
+        "restart requested $(Get-Date -Format o)" | Set-Content `
+            -Path $restartFlag `
+            -Encoding UTF8 `
+            -Force
+
+        Write-Output "WATCHDOG RESTART FLAG CREATED: $restartFlag"
+
+        $json = @{
+            ok = $true
+            restartFlag = $restartFlag
+        } | ConvertTo-Json -Compress
+
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+        $res.StatusCode = 200
+        $res.ContentType = "application/json; charset=utf-8"
+        $res.OutputStream.Write($bytes, 0, $bytes.Length)
+        $res.OutputStream.Close()
+    }
+    catch {
+        Write-Output "RESTART FLAG FAILURE: $($_.Exception.Message)"
+
+        $json = @{
+            ok = $false
+            error = $_.Exception.Message
+        } | ConvertTo-Json -Compress
+
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+        $res.StatusCode = 500
+        $res.ContentType = "application/json; charset=utf-8"
+        $res.OutputStream.Write($bytes, 0, $bytes.Length)
+        $res.OutputStream.Close()
+    }
+
+    continue
 }
 
 # block if remote disabled

@@ -65,6 +65,18 @@ $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $My
 Write-Host "WATCHDOG STARTING..." -ForegroundColor DarkRed
 Write-Log "Loading core files..." gray
 
+# --- CLEAR STALE RESTART FLAG ---
+$staleRestartFlag = Join-Path $scriptRoot "logs\restart.flag"
+
+if (Test-Path $staleRestartFlag) {
+
+    Remove-Item $staleRestartFlag `
+        -Force `
+        -ErrorAction SilentlyContinue
+
+    Write-Log "Removed stale restart flag during startup"
+}
+
 # --- RCON failure tracking (GLOBAL, persists during runtime) ---
 if (-not $global:RconFailureState) {
     $global:RconFailureState = @{}
@@ -781,6 +793,65 @@ $lastHeavyCycle = Get-Date
 $lastDashboardHealthCheck = [DateTime]::MinValue
 
 while ($true) {
+	Write-Log "MAIN LOOP HEARTBEAT PID=$PID"
+	$restartFlag = Join-Path $scriptRoot "logs\restart.flag"
+
+if (Test-Path $restartFlag) {
+
+    Write-Log "FLAG EXISTS IN MAIN LOOP"
+
+}
+	# =========================================
+	# WATCHDOG SELF-RESTART
+	# =========================================
+
+	try {
+
+$restartFlag = Join-Path $scriptRoot "logs\restart.flag"
+
+if (Test-Path $restartFlag) {
+
+    Write-Log "WATCHDOG RESTART FLAG DETECTED"
+
+    Remove-Item $restartFlag -Force -ErrorAction SilentlyContinue
+
+    $watchdogPs1 = Join-Path $scriptRoot "watchdog.ps1"
+    $watchdogExe = Join-Path $scriptRoot "watchdog.exe"
+
+    Write-Log "STARTING DETACHED WATCHDOG"
+
+    if (Test-Path $watchdogExe) {
+
+        Start-Process `
+            -FilePath $watchdogExe `
+            -WorkingDirectory $scriptRoot `
+            -WindowStyle Normal
+
+    }
+    else {
+
+        Start-Process powershell.exe `
+            -ArgumentList @(
+                '-ExecutionPolicy','Bypass',
+                '-NoProfile',
+                '-File',"`"$watchdogPs1`""
+            ) `
+            -WorkingDirectory $scriptRoot `
+            -WindowStyle Normal
+    }
+
+    Write-Log "EXITING CURRENT WATCHDOG"
+
+    Start-Sleep -Seconds 2
+
+    [Environment]::Exit(0)
+}
+
+	} catch {
+
+		Write-Log "WATCHDOG RESTART FAILURE: $($_.Exception.Message)"
+
+	}
     try {
         # --- FAST LANE: process dashboard commands quickly ---
         Process-CommandQueue
