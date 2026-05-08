@@ -588,7 +588,39 @@ function calculateHeight(){
                         Write-WidgetResponse -Response $res -StatusCode 200 -ContentType "text/html; charset=utf-8" -Body $builderHtml
                         continue
                     }
+if ($path -eq "/logo_bit.png") {
 
+    $logoBitPath = Join-Path $scriptRoot "img\logo_bit.png"
+
+    if (Test-Path $logoBitPath) {
+
+        try {
+
+            $bytes = [System.IO.File]::ReadAllBytes($logoBitPath)
+
+            $res.StatusCode = 200
+            $res.ContentType = "image/png"
+            $res.ContentLength64 = $bytes.Length
+
+            $res.OutputStream.Write($bytes, 0, $bytes.Length)
+
+        }
+        catch {
+
+            $res.StatusCode = 500
+
+        }
+
+    }
+    else {
+
+        $res.StatusCode = 404
+
+    }
+
+    $res.OutputStream.Close()
+    continue
+}
                     if ($path -match "^/widget/([a-zA-Z0-9_-]{1,64})$") {
                         if ($req.HttpMethod -ne "GET") {
                             Write-WidgetResponse -Response $res -StatusCode 405 -ContentType "text/plain; charset=utf-8" -Body "Method Not Allowed"
@@ -901,7 +933,7 @@ html += '</div>';
 if(showFooter){
 
     html += '<div class="watchdogFooter">' +
-            '<img src="/logo_bit.png">' +
+            '<img src="' + window.location.origin + '/logo_bit.png">' +
             '<span>Guarded by WATCHDOG</span>' +
             '</div>';
 }
