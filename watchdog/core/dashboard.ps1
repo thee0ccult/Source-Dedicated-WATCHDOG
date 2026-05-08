@@ -436,17 +436,29 @@ iframe{border:0;background:#000;border-radius:8px;display:block}
     </div>
 </div>
 
-        <div class="row">
+<div class="row">
     <div class="check">
         <input id="showPlayers" type="checkbox" checked>
         <label for="showPlayers" style="margin:0;">Show online players</label>
     </div>
+
     <div class="check">
         <input id="showJoin" type="checkbox" checked>
         <label for="showJoin" style="margin:0;">Show join button</label>
     </div>
 </div>
 
+<div class="row">
+    <div class="check">
+        <input id="showTitle" type="checkbox" checked>
+        <label for="showTitle" style="margin:0;">Show title</label>
+    </div>
+
+    <div class="check">
+        <input id="showFooter" type="checkbox" checked>
+        <label for="showFooter" style="margin:0;">Show footer</label>
+    </div>
+</div>
         <div class="actions" style="margin-top:14px;">
             <button id="refreshBtn" type="button">Refresh Preview</button>
             <button id="copyBtn" class="secondary" type="button">Copy Embed Code</button>
@@ -474,7 +486,7 @@ const presets = {
     green:  { bgColor:'0f1712', fontColor:'d8f0df', infoColor:'d8f0df', titleBgColor:'132118', titleColor:'8ef0a4', borderColor:'29543a', linkColor:'5de07f', borderStyle:'solid', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' }
 };
 
-	const ids = ['theme','bgColor','fontColor','labelColor','valueColor','titleBgColor','titleColor','borderColor','linkColor','borderStyle','fontSize','width','frameHeight','playerHeight','showPlayers','showJoin'];
+	const ids = ['theme','bgColor','fontColor','labelColor','valueColor','titleBgColor','titleColor','borderColor','linkColor','borderStyle','fontSize','width','frameHeight','playerHeight','showPlayers','showJoin','showTitle','showFooter'];
 
 	const el = {};
 	ids.forEach(id => el[id] = document.getElementById(id));
@@ -529,6 +541,8 @@ el.fontSize.value = p.fontSize;
 		params.set('frameHeight', intVal(el.frameHeight.value, 420, 200, 2000));
         params.set('showPlayers', showPlayers);
 		params.set('showJoin', el.showJoin.checked ? '1' : '0');
+		params.set('showTitle', el.showTitle.checked ? '1' : '0');
+		params.set('showFooter', el.showFooter.checked ? '1' : '0');
         return params.toString();
     }
 function calculateHeight(){
@@ -682,10 +696,14 @@ function calculateHeight(){
 						$frameHeight = Get-SafeInt -Value $qs["frameHeight"] -Default 420 -Min 200 -Max 2000
 						$showPlayers = Get-SafeBool -Value $qs["showPlayers"] -Default $true
 						$showJoin = Get-SafeBool -Value $qs["showJoin"] -Default $true
+						$showTitle = Get-SafeBool -Value $qs["showTitle"] -Default $true
+						$showFooter = Get-SafeBool -Value $qs["showFooter"] -Default $true
 
 						$showPlayersJs = if ($showPlayers) { "true" } else { "false" }
 						$showJoinJs = if ($showJoin) { "true" } else { "false" }
-
+						$showTitleJs = if ($showTitle) { "true" } else { "false" }
+						$showFooterJs = if ($showFooter) { "true" } else { "false" }
+						
                         $widgetHtml = @"
 <!doctype html>
 <html lang="en">
@@ -750,11 +768,29 @@ body{
 }
 .error{color:#ff6666}
 a{color:#$linkColor}
+.watchdogFooter{
+    margin-top:10px;
+    padding-top:8px;
+    border-top:1px solid #$borderColor;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+
+    opacity:0.75;
+}
+
+.watchdogFooter img{
+    width:16px;
+    height:16px;
+    object-fit:contain;
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-    <div class="title">$serverName</div>
+    $(if ($showTitle) { "<div class='title'>$serverName</div>" })
     <div id="content">Loading...</div>
 </div>
 <script>
@@ -763,6 +799,8 @@ async function load(){
         const serverName = "$serverName";
         const showPlayers = $showPlayersJs;
 		const showJoin = $showJoinJs;
+		const showTitle = $showTitleJs;
+		const showFooter = $showFooterJs;
         const res = await fetch('/widget/api/' + serverName + '?ts=' + Date.now(), { cache: 'no-store' });
 
         const root = document.getElementById('content');
@@ -860,6 +898,13 @@ html += '</div>';
                 html += '<div class="small" style="margin-top:8px;">No players connected</div>';
             }
         }
+if(showFooter){
+
+    html += '<div class="watchdogFooter">' +
+            '<img src="/logo_bit.png">' +
+            '<span>Guarded by WATCHDOG</span>' +
+            '</div>';
+}
 
 root.innerHTML = html;
     }catch(e){
@@ -1306,6 +1351,17 @@ if ($uHash -eq $currentUserHash -and $pHash -eq $currentPassHash) {
                                     $res.StatusCode = 404
                                 }
                             }
+							"/logo_bit.png" {
+								$logoBitPath = Join-Path $scriptRoot "img\logo_bit.png"
+	
+								if (Test-Path $logoBitPath) {
+									$bytes = [System.IO.File]::ReadAllBytes($logoBitPath)
+									$res.ContentType = "image/png"
+									$res.OutputStream.Write($bytes, 0, $bytes.Length)
+								} else {
+									$res.StatusCode = 404
+								}
+							}
                             "/on.png" {
                                 if (Test-Path $onIconPath) {
                                     $bytes = [System.IO.File]::ReadAllBytes($onIconPath)

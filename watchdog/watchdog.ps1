@@ -190,8 +190,40 @@ function Save-JsonAtomicWithMemory {
         # Write to temp first
         [System.IO.File]::WriteAllText($tempFile, $json, [System.Text.Encoding]::UTF8)
 
-        # Atomic replace
-        Move-Item -Path $tempFile -Destination $Path -Force
+        # Atomic replace (SAFE)
+        try {
+
+            if (Test-Path $Path) {
+
+                # Delete existing file first to prevent Move-Item lock collisions
+                Remove-Item $Path `
+                    -Force `
+                    -ErrorAction SilentlyContinue
+
+                Start-Sleep -Milliseconds 50
+            }
+
+            Move-Item `
+                -Path $tempFile `
+                -Destination $Path `
+                -Force `
+                -ErrorAction Stop
+
+        }
+        catch {
+
+            # Fallback: direct overwrite if Move-Item fails
+            [System.IO.File]::WriteAllText(
+                $Path,
+                $json,
+                [System.Text.Encoding]::UTF8
+            )
+
+            # Clean temp file if still present
+            Remove-Item $tempFile `
+                -Force `
+                -ErrorAction SilentlyContinue
+        }
 
         # Store memory backup
         $script:JsonMemoryBuffer[$Path] = $json
