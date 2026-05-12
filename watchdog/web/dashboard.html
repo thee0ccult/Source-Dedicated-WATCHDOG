@@ -108,7 +108,8 @@ button:hover{background:#111111}
     gap:6px
 }
 
-#remoteIcon{
+#remoteIcon,
+#masterIcon{
     width:16px;
     height:16px;
     object-fit:contain;
@@ -210,12 +211,16 @@ button:hover{background:#111111}
     <button onclick="saveAuth()">[SET]</button>
 	<button onclick="logout()">[LOGOUT]</button>
 </span>
-                <span id="remoteStatusWrap">
-				    <button onclick="restartWatchdog()">[RESTART]</button>
-                    <button onclick="toggleRemote()">[REMOTE]</button>
-                    <img id="remoteIcon" src="/off.png" alt="remote">
-                    <span id="remoteLabel">OFF</span>
-                </span>
+				<span id="remoteStatusWrap">
+					<button onclick="restartWatchdog()">[RESTART]</button>
+					<button onclick="toggleRemote()">[REMOTE]</button>
+					<img id="remoteIcon" src="/off.png" alt="remote">
+					<span id="remoteLabel">OFF</span>
+					<span style="margin-left:12px"></span>
+					<button onclick="toggleMasterList()">[MASTER LIST]</button>
+					<img id="masterIcon" src="/on.png" alt="master">
+					<span id="masterLabel">ON</span>
+				</span>
             </div>
         </div>
     </div>
@@ -354,6 +359,15 @@ async function toggleRemote() {
     await refreshRemoteStatus();
 }
 
+async function toggleMasterList() {
+
+    await api('/api/toggle-master', {
+        method: 'POST'
+    });
+
+    await refreshMasterStatus();
+}
+
 async function restartWatchdog() {
     const ok = confirm('Restart the watchdog PowerShell process now? Dashboard will briefly go offline.');
     if (!ok) return;
@@ -384,6 +398,26 @@ async function refreshRemoteStatus() {
             icon.src = '/off.png?_=' + Date.now();
             label.textContent = 'OFF';
             label.style.color = '#ff4444';
+        }
+    } catch {}
+}
+
+async function refreshMasterStatus() {
+
+    try {
+        const res = await api('/api/master-status?_=' + Date.now());
+        const data = await res.json();
+        const icon = document.getElementById('masterIcon');
+        const label = document.getElementById('masterLabel');
+		
+        if (data.master === true) {
+            icon.src = '/on.png?_=' + Date.now();
+            label.textContent = 'ON';
+            label.style.color = '#ff4444';
+        } else {
+            icon.src = '/off.png?_=' + Date.now();
+            label.textContent = 'OFF';
+            label.style.color = '#661f1f';
         }
     } catch {}
 }
@@ -785,10 +819,11 @@ startPowerShellTimer();
 startWatchdogTimer();
 loadAll();
 refreshRemoteStatus();
-
+refreshMasterStatus();
 setInterval(() => {
     loadAll();
     refreshRemoteStatus();
+	refreshMasterStatus();
 }, 5000);
 </script>
 </body>

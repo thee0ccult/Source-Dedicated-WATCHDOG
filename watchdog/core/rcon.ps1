@@ -263,8 +263,7 @@ function Get-ServerPlayers {
 				foreach ($line in $lines) {
 
 					# --- HUMAN PLAYERS ---
-					if ($line -match '^\#\s*(\d+)\s+(?:\d+\s+)?"([^"]+)"\s+([^\s]*)\s*([0-9:]+)?\s*(\d+)?\s*(\d+)?') {
-
+					if ($line -match '^\#\s*(\d+)\s+(?:\d+\s+)?"([^"]+)"\s+([^\s]*)\s*([0-9:]+)?\s*(\d+)?\s*(\d+)?\s*\w*\s*([^\s]+)?') {
 					$playerKey = "$($server.Name)|$($Matches[2])"
 
 					if (-not $global:LastGoodSteamIds) {
@@ -288,6 +287,7 @@ function Get-ServerPlayers {
 						Connected = if ($Matches[4]) { $Matches[4] } else { "" }
 						Ping      = if ($Matches[5]) { [int]$Matches[5] } else { 0 }
 						Loss      = if ($Matches[6]) { [int]$Matches[6] } else { 0 }
+						Adr       = if ($Matches[7]) { $Matches[7] } else { "" }
 						Score     = $null
 						IsBot     = ($newSteamId -eq "BOT")
 						Source    = "RCON"

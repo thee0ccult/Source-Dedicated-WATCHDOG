@@ -62,6 +62,9 @@ $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $My
 # --- Dashboard Console Injection ---
 . (Join-Path $scriptRoot "core\dashboard.ps1")
 
+# --- Master Registry ---
+. (Join-Path $scriptRoot "core\masterlist.ps1")
+
 Write-Host "WATCHDOG STARTING..." -ForegroundColor DarkRed
 Write-Log "Loading core files..." gray
 
@@ -92,6 +95,9 @@ if (-not $global:A2SPortCache) {
 if (-not $script:JsonMemoryBuffer) {
     $script:JsonMemoryBuffer = @{}
 }
+
+# --- MASTER SERVER ENABLE STATE ---
+$masterStateFile = Join-Path $scriptRoot "data\master_enabled.json"
 
 # --- History / status / players ---
 function Get-ServerBindIpFromArgs {
@@ -286,6 +292,64 @@ if (-not $global:LastGoodRconData) {
     $global:LastGoodRconData = @{}
 }
 
+function Get-MasterListEnabled {
+
+    if (-not (Test-Path $masterStateFile)) {
+
+        $default = @{
+            enabled = $true
+        } | ConvertTo-Json
+
+        Set-Content `
+            -Path $masterStateFile `
+            -Value $default `
+            -Encoding UTF8
+
+        return $true
+    }
+
+    try {
+
+        $json = Get-Content `
+            -Path $masterStateFile `
+            -Raw `
+            -ErrorAction Stop |
+            ConvertFrom-Json
+
+        return [bool]$json.enabled
+
+    } catch {
+
+        Write-Log "MASTER STATE READ FAILED: $($_.Exception.Message)"
+
+        return $true
+    }
+}
+
+function Set-MasterListEnabled {
+    param(
+        [bool]$Enabled
+    )
+
+    try {
+
+        @{
+            enabled = $Enabled
+            updated  = (Get-Date).ToString("o")
+        } |
+        ConvertTo-Json |
+        Set-Content `
+            -Path $masterStateFile `
+            -Encoding UTF8
+
+        Write-Log "MASTER SERVER ENABLE => $Enabled"
+
+    } catch {
+
+        Write-Log "MASTER STATE WRITE FAILED: $($_.Exception.Message)"
+    }
+}
+
 function Update-Status {
     $status = @()
 	
@@ -441,6 +505,7 @@ function Update-Status {
             Name         = $server.Name
             Port         = $server.Port
             Exe          = $server.Exe
+			Region       = $server.Region
 			RconHost 	 = $server.RconHost
             A2SHost      = if ($a2sEndpoint) { $a2sEndpoint.Host } else { $null }
             A2SPort      = if ($a2sEndpoint) { $a2sEndpoint.Port } else { $null }
@@ -505,6 +570,14 @@ Save-JsonAtomicWithMemory `
     -Data $status `
     -Depth 5 `
     -Label "STATUS"
+	if (Get-MasterListEnabled) {
+
+    Update-MasterHeartbeat -StatusData $status
+
+} else {
+
+    Write-Log "MASTER HEARTBEAT SKIPPED (DISABLED)"
+}
 }
 
 function Update-History {
@@ -595,6 +668,8 @@ Save-JsonAtomicWithMemory `
     -Data $allPlayers `
     -Depth 8 `
     -Label "PLAYERS"
+
+    Update-UsersList -Players $allPlayers
 }
 
 # --- Commands from dashboard ---
@@ -966,7 +1041,15 @@ if (Test-Path $restartFlag) {
             Update-Status
             Update-History
             Update-Players
+			
+			if (Get-MasterListEnabled) {
 
+    Send-MasterHeartbeat
+
+} else {
+
+    Write-Log "MASTER SEND SKIPPED (DISABLED)"
+}
             $lastHeavyCycle = Get-Date
         }
     } catch {

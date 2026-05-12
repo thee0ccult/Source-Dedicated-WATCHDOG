@@ -67,10 +67,66 @@ function Start-Dashboard {
             $allowRemote = [bool]$initialAllowRemote
 			$authToken = [guid]::NewGuid().ToString()
 
+			# --- SHARED MASTER STATE FILE ---
+			$masterStateFile = Join-Path $scriptRoot "data\master_enabled.json"
+
             $listener = New-Object System.Net.HttpListener
             $listener.IgnoreWriteExceptions = $true
             $listener.Prefixes.Add("http://+:$port/")
 			Add-Type -AssemblyName Microsoft.VisualBasic
+			
+			function Get-MasterListEnabled {
+
+    if (-not (Test-Path $masterStateFile)) {
+
+        @{
+            enabled = $true
+        } |
+        ConvertTo-Json |
+        Set-Content `
+            -Path $masterStateFile `
+            -Encoding UTF8
+
+        return $true
+    }
+
+    try {
+
+        $json = Get-Content `
+            -Path $masterStateFile `
+            -Raw `
+            -ErrorAction Stop |
+            ConvertFrom-Json
+
+        return [bool]$json.enabled
+
+    } catch {
+
+        return $true
+    }
+}
+
+function Set-MasterListEnabled {
+    param(
+        [bool]$Enabled
+    )
+
+    try {
+
+        @{
+            enabled = $Enabled
+            updated = (Get-Date).ToString("o")
+        } |
+        ConvertTo-Json |
+        Set-Content `
+            -Path $masterStateFile `
+            -Encoding UTF8
+
+    } catch {
+
+        Write-Output "MASTER STATE WRITE FAILED: $($_.Exception.Message)"
+    }
+}
 			
             function Write-WidgetResponse {
                 param(
@@ -271,6 +327,7 @@ if ([string]::IsNullOrWhiteSpace($port)) {
 
 $safe = @{
     name          = $server.Name
+	region        = $server.Region
     hostname      = $server.Hostname
     status        = $server.Status
     map           = $server.Map
@@ -621,6 +678,60 @@ if ($path -eq "/logo_bit.png") {
     $res.OutputStream.Close()
     continue
 }
+
+if ($path -match "^/flags/([a-zA-Z0-9_-]+)\.gif$") {
+
+    $flagName = $Matches[1].ToLowerInvariant()
+
+    $flagPath = Join-Path $scriptRoot "flags\$flagName.gif"
+
+    if (Test-Path $flagPath) {
+
+        try {
+
+            $bytes = [System.IO.File]::ReadAllBytes($flagPath)
+
+            $res.StatusCode = 200
+            $res.ContentType = "image/gif"
+            $res.ContentLength64 = $bytes.Length
+
+            $res.OutputStream.Write($bytes, 0, $bytes.Length)
+
+        }
+        catch {
+
+            $res.StatusCode = 500
+
+        }
+
+    }
+    else {
+
+        $fallback = Join-Path $scriptRoot "flags\dontknow.gif"
+
+        if (Test-Path $fallback) {
+
+            $bytes = [System.IO.File]::ReadAllBytes($fallback)
+
+            $res.StatusCode = 200
+            $res.ContentType = "image/gif"
+            $res.ContentLength64 = $bytes.Length
+
+            $res.OutputStream.Write($bytes, 0, $bytes.Length)
+
+        }
+        else {
+
+            $res.StatusCode = 404
+
+        }
+
+    }
+
+    $res.OutputStream.Close()
+    continue
+}
+
                     if ($path -match "^/widget/([a-zA-Z0-9_-]{1,64})$") {
                         if ($req.HttpMethod -ne "GET") {
                             Write-WidgetResponse -Response $res -StatusCode 405 -ContentType "text/plain; charset=utf-8" -Body "Method Not Allowed"
@@ -760,7 +871,7 @@ body{
     display:flex;
     flex-direction:column;
 }
-.title{font-size:$([int]($fontSize + 2))px;font-weight:700;color:#$titleColor;background:#$titleBgColor;margin:-10px -10px 8px -10px;padding:10px;border-bottom:1px solid #$borderColor}
+.title{font-size:$([int]($fontSize + 2))px;font-weight:700;color:#$titleColor;background:#$titleBgColor;margin:-10px -10px 8px -10px;padding:0px;border-bottom:1px solid #$borderColor}
 .status{
     margin-bottom:6px;
     display:flex;
@@ -818,6 +929,21 @@ a{color:#$linkColor}
     height:16px;
     object-fit:contain;
 }
+.onlineRow{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+}
+
+.flag{
+    width:16px;
+    height:11px;
+    object-fit:cover;
+    image-rendering:auto;
+    border-radius:1px;
+    box-shadow:0 0 2px rgba(0,0,0,0.5);
+}
 </style>
 </head>
 <body>
@@ -850,7 +976,24 @@ async function load(){
         let html = '';
         let statusHtml = '<div class="status ' + (isOnline ? 'online' : 'offline') + '">';
 
-statusHtml += '<span>' + (data.status || 'UNKNOWN') + '</span>';
+statusHtml += '<div style="display:flex;align-items:center;gap:6px;">' +
+
+    '<span>' + (data.status || 'UNKNOWN') + '</span>' +
+
+    '<img ' +
+        'src="/flags/' + ((data.region || 'dontknow').toLowerCase()) + '.gif" ' +
+        'title="Region: ' + (data.region || 'Unknown') + '" ' +
+        'alt="' + (data.region || 'Unknown') + '" ' +
+        'style="' +
+            'width:16px;' +
+            'height:11px;' +
+            'object-fit:cover;' +
+            'border-radius:1px;' +
+            'box-shadow:0 0 2px rgba(0,0,0,0.5);' +
+        '"' +
+    '>' +
+
+'</div>';
 
 const connect = (data.ip && data.port)
     ? 'steam://connect/' + data.ip + ':' + data.port
@@ -1364,6 +1507,22 @@ if ($uHash -eq $currentUserHash -and $pHash -eq $currentPassHash) {
     $res.ContentType = "application/json"
     $res.OutputStream.Write($bytes, 0, $bytes.Length)
 }
+"/api/toggle-master" {
+
+    $current = Get-MasterListEnabled
+
+    $newState = -not $current
+
+    Set-MasterListEnabled -Enabled $newState
+
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes(
+        "{""master"":$($newState.ToString().ToLower())}"
+    )
+
+    $res.ContentType = "application/json"
+
+    $res.OutputStream.Write($bytes, 0, $bytes.Length)
+}
                             "/api/ping" {
                                 $res.ContentType = "application/json; charset=utf-8"
                                 $bytes = [System.Text.Encoding]::UTF8.GetBytes("{""ok"":true,""ts"":""$((Get-Date).ToString("o"))""}")
@@ -1374,6 +1533,18 @@ if ($uHash -eq $currentUserHash -and $pHash -eq $currentPassHash) {
                                 $res.ContentType = "application/json; charset=utf-8"
                                 $res.OutputStream.Write($bytes, 0, $bytes.Length)
                             }
+							"/api/master-status" {
+
+								$enabled = Get-MasterListEnabled
+
+								$bytes = [System.Text.Encoding]::UTF8.GetBytes(
+									"{""master"":$($enabled.ToString().ToLower())}"
+								)
+
+								$res.ContentType = "application/json; charset=utf-8"
+
+								$res.OutputStream.Write($bytes, 0, $bytes.Length)
+							}
                             "/logo.png" {
                                 if (Test-Path $logoPath) {
                                     $bytes = [System.IO.File]::ReadAllBytes($logoPath)
