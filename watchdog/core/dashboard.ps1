@@ -60,9 +60,9 @@ function Start-Dashboard {
 	$loginPage = $dashboardData.Login
 
     Start-Job -Name $jobName `
-        -ArgumentList $scriptRoot, $dashboardPort, $statusFile, $historyFile, $playersFile, $logoPath, $onIconPath, $offIconPath, $dashboardTitle, $commandQueueFile, $dashboardHtml, $loginPage, $allowRemote, $servers `
+        -ArgumentList $scriptRoot, $dashboardPort, $statusFile, $historyFile, $playersFile, $usersDatabaseFile, $logoPath, $onIconPath, $offIconPath, $dashboardTitle, $commandQueueFile, $dashboardHtml, $loginPage, $allowRemote, $servers `
         -ScriptBlock {
-            param($scriptRoot, $port, $statusPath, $historyPath, $playersPath, $logoPath, $onIconPath, $offIconPath, $title, $queuePath, $dashboardHtml, $loginPage, $initialAllowRemote, $servers)
+            param($scriptRoot, $port, $statusPath, $historyPath, $playersPath, $usersDatabasePath, $logoPath, $onIconPath, $offIconPath, $title, $queuePath, $dashboardHtml, $loginPage, $initialAllowRemote, $servers)
 
             $allowRemote = [bool]$initialAllowRemote
 			$authToken = [guid]::NewGuid().ToString()
@@ -729,6 +729,49 @@ if ($path -match "^/flags/([a-zA-Z0-9_-]+)\.gif$") {
     }
 
     $res.OutputStream.Close()
+    continue
+}
+
+if ($path -eq "/api/users-list") {
+
+    try {
+
+        if (-not (Test-Path $usersDatabasePath)) {
+
+            Write-WidgetResponse `
+                -Response $res `
+                -StatusCode 200 `
+                -ContentType "application/json; charset=utf-8" `
+                -Body "[]"
+
+            continue
+        }
+
+        $rawUsers = Get-Content `
+            -Path $usersDatabasePath `
+            -Raw `
+            -ErrorAction SilentlyContinue
+
+        if ([string]::IsNullOrWhiteSpace($rawUsers)) {
+            $rawUsers = "[]"
+        }
+
+        Write-WidgetResponse `
+            -Response $res `
+            -StatusCode 200 `
+            -ContentType "application/json; charset=utf-8" `
+            -Body $rawUsers
+
+    }
+    catch {
+
+        Write-WidgetResponse `
+            -Response $res `
+            -StatusCode 500 `
+            -ContentType "application/json; charset=utf-8" `
+            -Body '{"error":"Failed to load users database"}'
+    }
+
     continue
 }
 

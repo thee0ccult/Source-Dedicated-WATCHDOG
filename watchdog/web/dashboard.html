@@ -211,16 +211,22 @@ button:hover{background:#111111}
     <button onclick="saveAuth()">[SET]</button>
 	<button onclick="logout()">[LOGOUT]</button>
 </span>
-				<span id="remoteStatusWrap">
-					<button onclick="restartWatchdog()">[RESTART]</button>
-					<button onclick="toggleRemote()">[REMOTE]</button>
-					<img id="remoteIcon" src="/off.png" alt="remote">
-					<span id="remoteLabel">OFF</span>
-					<span style="margin-left:12px"></span>
-					<button onclick="toggleMasterList()">[MASTER LIST]</button>
-					<img id="masterIcon" src="/on.png" alt="master">
-					<span id="masterLabel">ON</span>
-				</span>
+<div style="display:flex;flex-direction:column;gap:6px">
+    <span id="remoteStatusWrap">
+        <button onclick="restartWatchdog()">[RESTART]</button>
+        <button onclick="toggleRemote()">[REMOTE]</button>
+        <img id="remoteIcon" src="/off.png" alt="remote">
+        <span id="remoteLabel">OFF</span>
+        <span style="margin-left:12px"></span>
+        <button onclick="toggleMasterList()">[MASTER LIST]</button>
+        <img id="masterIcon" src="/on.png" alt="master">
+        <span id="masterLabel">ON</span>
+    </span>
+    <div>
+        <button onclick="openPlayersList()">[PLAYERS LIST]</button>
+    </div>
+</div>
+
             </div>
         </div>
     </div>
@@ -248,10 +254,105 @@ button:hover{background:#111111}
     </div>
 </div>
 
+<div id="playersModal" class="mapModal" onclick="closePlayersList(event)">
+    <div class="mapPanel" style="width:min(1400px,98vw)">
+        <div class="mapHeader">
+            <div class="mapTitle">Players Database</div>
+            <button type="button" onclick="closePlayersList()">[CLOSE]</button>
+        </div>
+
+        <div class="mapBody">
+
+            <input
+                id="playersSearch"
+                type="text"
+                placeholder="Search SteamID, Username, IP, Server..."
+                style="
+                    width:100%;
+                    margin-bottom:10px;
+                    padding:8px;
+                    box-sizing:border-box;
+                    background:#000;
+                    color:#fff;
+                    border:1px solid #cd7575;
+                    border-radius:6px;
+                "
+                oninput="filterPlayersTable()"
+            >
+
+			<div style="
+				display:flex;
+				justify-content:space-between;
+				align-items:center;
+				margin-bottom:10px;
+				gap:10px;
+				flex-wrap:wrap;
+			">
+
+				<div id="playersPageInfo"
+					 style="font-size:12px;color:#ffc0c0">
+					Page 1
+				</div>
+
+				<div style="display:flex;gap:6px">
+
+					<button onclick="previousPlayersPage()">
+						[PREV]
+					</button>
+
+					<button onclick="nextPlayersPage()">
+						[NEXT]
+					</button>
+
+				</div>
+
+			</div>
+
+            <div style="
+                max-height:70vh;
+                overflow:auto;
+                border:1px solid #331717;
+                border-radius:8px;
+            ">
+
+                <table
+                    id="playersTable"
+                    class="playersTable"
+                    style="min-width:1200px"
+                >
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>SteamID</th>
+                            <th>Usernames</th>
+                            <th>First Seen</th>
+                            <th>Last Seen</th>
+                            <th>Last Server</th>
+                            <th>Total Joins</th>
+                            <th>Total Playtime</th>
+                            <th>Longest Session</th>
+                            <th>IPs</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="playersTableBody"></tbody>
+
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 let statusData = [];
 let historyData = [];
 let playersData = [];
+let playersListData = [];
+let filteredPlayersListData = [];
+
+let playersCurrentPage = 1;
+const playersPerPage = 30;
 let activeInputState = {
     id: null,
     value: null,
@@ -547,6 +648,210 @@ function closeMapList(event) {
     }
 }
 
+async function openPlayersList() {
+
+    const modal = document.getElementById('playersModal');
+    const tbody = document.getElementById('playersTableBody');
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="10">Loading...</td>
+        </tr>
+    `;
+
+    modal.classList.add('open');
+
+    try {
+
+        const res = await api('/api/users-list?_=' + Date.now());
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+            throw new Error('Invalid players database');
+        }
+
+        playersListData = data;
+		filteredPlayersListData = [...data];
+
+		playersCurrentPage = 1;
+
+		renderPlayersTablePage();
+
+    } catch (err) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10">
+                    Failed to load players database:
+                    ${err.message}
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function renderPlayersTablePage() {
+
+    const tbody = document.getElementById('playersTableBody');
+    const pageInfo = document.getElementById('playersPageInfo');
+
+    tbody.innerHTML = '';
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredPlayersListData.length / playersPerPage)
+    );
+
+    if (playersCurrentPage > totalPages) {
+        playersCurrentPage = totalPages;
+    }
+
+    const startIndex =
+        (playersCurrentPage - 1) * playersPerPage;
+
+    const endIndex =
+        startIndex + playersPerPage;
+
+    const pageItems =
+        filteredPlayersListData.slice(startIndex, endIndex);
+
+    let row =
+        startIndex + 1;
+
+    for (const player of pageItems) {
+
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+            <td>${row}</td>
+            <td>${player.SteamID || ''}</td>
+            <td>${(player.Usernames || []).join(', ')}</td>
+            <td>${player.FirstSeen || ''}</td>
+            <td>${player.LastSeen || ''}</td>
+            <td>${player.LastServer || ''}</td>
+            <td>${player.TotalJoins || 0}</td>
+            <td>${formatPlaytime(player.TotalPlaytimeSeconds || 0)}</td>
+            <td>${formatPlaytime(player.LongestSessionSeconds || 0)}</td>
+            <td>${(player.IpHistory || []).join(', ')}</td>
+        `;
+
+        tbody.appendChild(tr);
+
+        row++;
+    }
+
+    if (pageItems.length === 0) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10">
+                    No players found.
+                </td>
+            </tr>
+        `;
+    }
+
+    pageInfo.textContent =
+        `Page ${playersCurrentPage} / ${totalPages} ` +
+        `(${filteredPlayersListData.length} players)`;
+}
+
+function nextPlayersPage() {
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredPlayersListData.length / playersPerPage)
+    );
+
+    if (playersCurrentPage < totalPages) {
+
+        playersCurrentPage++;
+
+        renderPlayersTablePage();
+    }
+}
+
+function previousPlayersPage() {
+
+    if (playersCurrentPage > 1) {
+
+        playersCurrentPage--;
+
+        renderPlayersTablePage();
+    }
+}
+
+function closePlayersList(event) {
+
+    if (
+        event &&
+        event.target &&
+        event.target.id !== 'playersModal'
+    ) {
+        return;
+    }
+
+    document
+        .getElementById('playersModal')
+        .classList
+        .remove('open');
+}
+
+function filterPlayersTable() {
+
+    const input = document
+        .getElementById('playersSearch')
+        .value
+        .toLowerCase();
+
+    filteredPlayersListData = playersListData.filter(player => {
+
+        const combined = `
+            ${player.SteamID || ''}
+            ${(player.Usernames || []).join(' ')}
+            ${player.LastServer || ''}
+            ${(player.IpHistory || []).join(' ')}
+        `.toLowerCase();
+
+        return combined.includes(input);
+    });
+
+    playersCurrentPage = 1;
+
+    renderPlayersTablePage();
+}
+
+function formatPlaytime(seconds) {
+
+    seconds = Number(seconds || 0);
+
+    if (seconds <= 0) {
+        return '0s';
+    }
+
+    const d = Math.floor(seconds / 86400);
+    seconds %= 86400;
+
+    const h = Math.floor(seconds / 3600);
+    seconds %= 3600;
+
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+
+    if (d > 0) {
+        return `${d}d ${h}h ${m}m ${s}s`;
+    }
+
+    if (h > 0) {
+        return `${h}h ${m}m ${s}s`;
+    }
+
+    if (m > 0) {
+        return `${m}m ${s}s`;
+    }
+
+    return `${s}s`;
+}
 
 function drawChart(canvas, samples, field, label) {
     const ctx = canvas.getContext('2d');

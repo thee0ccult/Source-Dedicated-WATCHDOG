@@ -54,6 +54,10 @@ $script:launchPrefs = @{}
 $script:lastRestart = @{}
 $script:downSince = @{}
 $script:rconStatus = @{}
+# --- ACTIVE PLAYER SESSION TRACKING ---
+# Runtime-only tracking for true joins/leaves.
+# Prevents TotalJoins inflation during watchdog refresh loops.
+$script:activePlayerSessions = @{}
 
 $script:scriptStartTime = Get-Date
 
@@ -263,6 +267,72 @@ function Get-UsersListServerName {
     return ""
 }
 
+function Format-SessionDuration {
+    param(
+        [datetime]$StartTime
+    )
+
+    if ($null -eq $StartTime) {
+        return ""
+    }
+
+    $duration = (Get-Date) - $StartTime
+
+    $days = [int]$duration.TotalDays
+    $hours = $duration.Hours
+    $minutes = $duration.Minutes
+    $seconds = $duration.Seconds
+
+    if ($days -gt 0) {
+        return "{0}d {1}h {2}m {3}s" -f $days, $hours, $minutes, $seconds
+    }
+
+    if ($hours -gt 0) {
+        return "{0}h {1}m {2}s" -f $hours, $minutes, $seconds
+    }
+
+    if ($minutes -gt 0) {
+        return "{0}m {1}s" -f $minutes, $seconds
+    }
+
+    return "{0}s" -f $seconds
+}
+
+function Format-PlaytimeDuration {
+    param(
+        [int64]$TotalSeconds
+    )
+
+    if ($TotalSeconds -le 0) {
+        return "0s"
+    }
+
+    $ts = [TimeSpan]::FromSeconds($TotalSeconds)
+
+    if ($ts.TotalDays -ge 1) {
+        return "{0}d {1}h {2}m {3}s" -f `
+            [int]$ts.TotalDays,
+            $ts.Hours,
+            $ts.Minutes,
+            $ts.Seconds
+    }
+
+    if ($ts.TotalHours -ge 1) {
+        return "{0}h {1}m {2}s" -f `
+            $ts.Hours,
+            $ts.Minutes,
+            $ts.Seconds
+    }
+
+    if ($ts.TotalMinutes -ge 1) {
+        return "{0}m {1}s" -f `
+            $ts.Minutes,
+            $ts.Seconds
+    }
+
+    return "{0}s" -f $ts.Seconds
+}
+
 function Update-UsersList {
     param(
         [array]$Players
@@ -271,6 +341,143 @@ function Update-UsersList {
     if ($null -eq $Players) {
         return
     }
+
+	# --- BUILD CURRENT SESSION SNAPSHOT ---
+	$currentSessions = @{}
+
+	foreach ($wrapper in @($Players)) {
+
+		$serverLabel = ""
+
+		if ($wrapper.PSObject.Properties["Server"]) {
+			$serverLabel = [string]$wrapper.Server
+		}
+
+		foreach ($player in (Expand-UsersListPlayers -Items @($wrapper))) {
+
+			$playerName = Get-UsersListPlayerName -Player $player
+			$steamId = Get-UsersListSteamId -Player $player
+
+			$sessionKey = ""
+
+			if (-not [string]::IsNullOrWhiteSpace($steamId)) {
+				$sessionKey = "$serverLabel|$steamId"
+			}
+			elseif (-not [string]::IsNullOrWhiteSpace($playerName)) {
+				$sessionKey = "$serverLabel|NAME:$playerName"
+			}
+
+			if (-not [string]::IsNullOrWhiteSpace($sessionKey)) {
+				$currentSessions[$sessionKey] = $true
+			}
+		}
+	}
+
+	# --- CLEANUP DISCONNECTED SESSIONS ---
+	foreach ($existingKey in @($script:activePlayerSessions.Keys)) {
+
+		if (-not $currentSessions.ContainsKey($existingKey)) {
+
+			$session = $script:activePlayerSessions[$existingKey]
+
+			if (
+				$session.ContainsKey("FirstSeen") -and
+				$session.ContainsKey("SteamID")
+			) {
+
+				$sessionSeconds = [int64](
+					((Get-Date) - $session.FirstSeen).TotalSeconds
+				)
+
+				$steamId = [string]$session.SteamID
+
+				if (-not [string]::IsNullOrWhiteSpace($steamId)) {
+
+					try {
+
+						$rawDb = Get-Content `
+							-Path $usersDatabaseFile `
+							-Raw `
+							-ErrorAction SilentlyContinue
+
+						if (-not [string]::IsNullOrWhiteSpace($rawDb)) {
+
+							$parsedRaw = $rawDb | ConvertFrom-Json
+
+						$dbParsed = New-Object System.Collections.ArrayList
+
+						foreach ($entry in @($parsedRaw)) {
+							[void]$dbParsed.Add($entry)
+						}
+
+						foreach ($dbRecord in $dbParsed) {
+
+							if ($dbRecord.SteamID -eq $steamId) {
+
+								# --- SAFE FIELD INITIALIZATION ---
+
+								if (-not ($dbRecord.PSObject.Properties.Name -contains "TotalPlaytimeSeconds")) {
+
+									$dbRecord | Add-Member `
+										-NotePropertyName "TotalPlaytimeSeconds" `
+										-NotePropertyValue ([int64]0)
+								}
+
+								if (-not ($dbRecord.PSObject.Properties.Name -contains "LongestSessionSeconds")) {
+
+									$dbRecord | Add-Member `
+										-NotePropertyName "LongestSessionSeconds" `
+										-NotePropertyValue ([int64]0)
+								}
+
+								# --- FORCE SAFE INTEGER TYPES ---
+
+								$currentPlaytime = 0
+
+								try {
+									$currentPlaytime = [int64]($dbRecord.TotalPlaytimeSeconds | Select-Object -First 1)
+								} catch {}
+
+								$currentLongest = 0
+
+								try {
+									$currentLongest = [int64]($dbRecord.LongestSessionSeconds | Select-Object -First 1)
+								} catch {}
+
+								# --- UPDATE TOTAL PLAYTIME ---
+
+								$dbRecord.TotalPlaytimeSeconds =
+									[int64]($currentPlaytime + $sessionSeconds)
+
+								# --- UPDATE LONGEST SESSION ---
+
+								if ($sessionSeconds -gt $currentLongest) {
+
+									$dbRecord.LongestSessionSeconds =
+										[int64]$sessionSeconds
+								}
+
+								break
+							}
+						}
+
+							Save-JsonAtomicWithMemory `
+								-Path $usersDatabaseFile `
+								-Data $dbParsed `
+								-Depth 10 `
+								-Label "USERS DATABASE"
+						}
+
+					} catch {
+
+						Write-Log "SESSION PLAYTIME SAVE FAILED: $($_.Exception.Message)"
+					}
+				}
+			}
+
+			$script:activePlayerSessions.Remove($existingKey)
+		}
+	}
 
     $database = @()
 
@@ -318,14 +525,30 @@ function Update-UsersList {
         $ipAddress = Get-UsersListIpAddress -Player $player
         $serverName = $serverLabel
 
+		# --- STABLE SESSION KEY ---
+		# Prefer SteamID.
+		# Fallback to username only if SteamID unavailable.
+		$sessionKey = ""
+
+		if (-not [string]::IsNullOrWhiteSpace($steamId)) {
+			$sessionKey = "$serverName|$steamId"
+		}
+		elseif (-not [string]::IsNullOrWhiteSpace($playerName)) {
+			$sessionKey = "$serverName|NAME:$playerName"
+		}
+
         if ([string]::IsNullOrWhiteSpace($playerName) -and
             [string]::IsNullOrWhiteSpace($steamId)) {
             continue
         }
 
-        if ($steamId -eq "BOT") {
-            continue
-        }
+		if (
+			$steamId -eq "BOT" -or
+			$playerName -match '^BOT\s' -or
+			$playerName -match '^Player_\d+$'
+		) {
+			continue
+		}
 
         $record = $null
 
@@ -390,22 +613,52 @@ function Update-UsersList {
 		if (-not ($record.PSObject.Properties.Name -contains "IpHistory")) {
 			$record | Add-Member -NotePropertyName "IpHistory" -NotePropertyValue @()
 		}
+		
+		if (-not ($record.PSObject.Properties.Name -contains "TotalPlaytimeSeconds")) {
+			$record | Add-Member -NotePropertyName "TotalPlaytimeSeconds" -NotePropertyValue 0
+		}
 
+		if (-not ($record.PSObject.Properties.Name -contains "LongestSessionSeconds")) {
+			$record | Add-Member -NotePropertyName "LongestSessionSeconds" -NotePropertyValue 0
+		}
+		
         if (-not [string]::IsNullOrWhiteSpace($playerName) -and
             $record.Usernames -notcontains $playerName) {
 
             $record.Usernames = @($record.Usernames + $playerName)
         }
 
-        if (-not [string]::IsNullOrWhiteSpace($ipAddress) -and
-            $record.IpHistory -notcontains $ipAddress) {
+		if (-not [string]::IsNullOrWhiteSpace($ipAddress) -and
+			$record.IpHistory -notcontains $ipAddress) {
 
-            $record.IpHistory = @($record.IpHistory + $ipAddress)
-        }
+			$record.IpHistory = @($record.IpHistory + $ipAddress)
 
-        $record.LastSeen = $now
-        $record.LastServer = $serverName
-		$record.TotalJoins = [int]$record.TotalJoins + 1
+			# --- KEEP ONLY LAST 10 IPS ---
+			if ($record.IpHistory.Count -gt 10) {
+
+				$record.IpHistory =
+					@(
+						$record.IpHistory |
+						Select-Object -Last 10
+					)
+			}
+		}
+
+		$record.LastSeen = $now
+		$record.LastServer = $serverName
+
+		# --- TRUE SESSION JOIN TRACKING ---
+		if (
+			-not [string]::IsNullOrWhiteSpace($sessionKey) -and
+			-not $script:activePlayerSessions.ContainsKey($sessionKey)
+		) {
+			$script:activePlayerSessions[$sessionKey] = @{
+				FirstSeen = Get-Date
+				SteamID   = $steamId
+			}
+
+			$record.TotalJoins = [int]$record.TotalJoins + 1
+		}
     }
 }
 
@@ -424,6 +677,30 @@ function Update-UsersList {
         $usernames = @($record.Usernames) -join ", "
         $ips = @($record.IpHistory) -join ", "
 
+		$totalPlaytime = Format-PlaytimeDuration `
+			-TotalSeconds ([int64]$record.TotalPlaytimeSeconds)
+
+		$longestSession = Format-PlaytimeDuration `
+			-TotalSeconds ([int64]$record.LongestSessionSeconds)
+
+		$currentSessionDuration = ""
+
+		foreach ($sessionKey in $script:activePlayerSessions.Keys) {
+
+			if ($sessionKey -match [regex]::Escape($record.SteamID)) {
+
+				$session = $script:activePlayerSessions[$sessionKey]
+
+				if ($session.ContainsKey("FirstSeen")) {
+
+					$currentSessionDuration = Format-SessionDuration `
+						-StartTime $session.FirstSeen
+
+					break
+				}
+			}
+		}
+
         $output += (
             "$row | " +
             "SteamID: $($record.SteamID) | " +
@@ -431,6 +708,9 @@ function Update-UsersList {
             "First Seen: $($record.FirstSeen) | " +
             "Last Seen: $($record.LastSeen) | " +
             "Last Server: $($record.LastServer) | " +
+			"Current Session: $currentSessionDuration | " +
+			"Longest Session: $longestSession | " +
+			"Total Playtime: $totalPlaytime | " +
             "Total Joins: $($record.TotalJoins) | " +
             "IPs: $ips"
         )
