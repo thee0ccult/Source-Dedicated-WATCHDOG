@@ -225,6 +225,38 @@ button:hover{background:#111111}
     <div>
         <button onclick="openPlayersList()">[PLAYERS LIST]</button>
     </div>
+	<div id="dashboardStats" style="
+    margin-top:6px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    font-size:12px;
+	">
+
+		<div>
+			<span style="color:#ff6262;font-weight:700">
+				SERVERS ONLINE:
+			</span>
+			<span id="serversOnlineCount">0</span>
+		</div>
+
+		<div>
+			<span style="color:#661f1f;font-weight:700">
+				SERVERS OFFLINE:
+			</span>
+			<span id="serversOfflineCount">0</span>
+		</div>
+
+		<div>
+			<span style="color:#ffc0c0;font-weight:700">
+				PLAYERS CONNECTED:
+			</span>
+			<span id="playersConnectedCount">0</span>
+		</div>
+
+	</div>
+</div>
 </div>
 
             </div>
@@ -414,6 +446,57 @@ function startPowerShellTimer() {
             el.textContent = formatDuration(elapsed);
         }
     }, 1000);
+}
+
+function updateDashboardStats() {
+
+    let online = 0;
+    let offline = 0;
+    let players = 0;
+
+    for (const server of statusData) {
+
+        const isOnline =
+            String(server.Status || '')
+            .toUpperCase()
+            .includes('ONLINE');
+
+        if (isOnline) {
+            online++;
+        } else {
+            offline++;
+        }
+
+        const playerInfo = String(server.PlayersInfo || '');
+
+        // Match:
+        // "5 humans, 3 bots (20 max)"
+        // OR
+        // "0 humans, 0 bots (32 max)"
+        // OR
+        // "12/32"
+
+        let match =
+            playerInfo.match(/(\d+)\s+humans?/i);
+
+        if (match) {
+
+            players += parseInt(match[1], 10);
+
+        } else {
+
+            // fallback for old style "12/32"
+            match = playerInfo.match(/^(\d+)\s*\//);
+
+            if (match) {
+                players += parseInt(match[1], 10);
+            }
+        }
+    }
+
+    document.getElementById('serversOnlineCount').textContent = online;
+    document.getElementById('serversOfflineCount').textContent = offline;
+    document.getElementById('playersConnectedCount').textContent = players;
 }
 
 async function api(path, options) {
@@ -1103,6 +1186,8 @@ async function loadAll() {
         statusData = await statusRes.json();
         historyData = await historyRes.json();
         playersData = await playersRes.json();
+		
+		updateDashboardStats();
 
 		captureActiveInput();
 		renderCards();

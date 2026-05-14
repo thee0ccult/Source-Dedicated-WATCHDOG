@@ -198,8 +198,9 @@ function Invoke-SourceRcon {
 function Get-ServerPlayers {
     param($server)
 
-    if (-not $global:RconFailureState) { $global:RconFailureState = @{} }
-    if (-not $global:LastGoodRconData) { $global:LastGoodRconData = @{} }
+	if (-not $global:RconFailureState) { $global:RconFailureState = @{} }
+	if (-not $global:RconRetryTime) { $global:RconRetryTime = @{} }
+	if (-not $global:LastGoodRconData) { $global:LastGoodRconData = @{} }
 	# --- DEBUG PRINT TRACKING ---
 	if (-not $global:DebugStatusPrinted) { $global:DebugStatusPrinted = @{} }
 	
@@ -207,11 +208,46 @@ function Get-ServerPlayers {
     $rconWasTried = $false
 
     if (-not [string]::IsNullOrWhiteSpace($server.RconPassword)) {
-        if ($global:RconFailureState.ContainsKey($server.Name) -and
-            $global:RconFailureState[$server.Name] -eq "FAILED") {
+		if ($server.Name -ieq "gmod") {
 
-            $fallbackMessage = "RCON disabled; using A2S_PLAYER fallback."
-        }
+			$fallbackMessage =
+				"GMOD RCON player info excluded; using A2S_PLAYER fallback."
+
+		}
+		elseif ($global:RconFailureState.ContainsKey($server.Name) -and
+				$global:RconFailureState[$server.Name] -eq "FAILED") {
+
+			$retryAllowed = $false
+
+			if (-not $global:RconRetryTime.ContainsKey($server.Name)) {
+
+				$retryAllowed = $true
+
+			} else {
+
+				$elapsed =
+					((Get-Date) - $global:RconRetryTime[$server.Name]).TotalSeconds
+
+				if ($elapsed -ge 60) {
+					$retryAllowed = $true
+				}
+			}
+
+			if (-not $retryAllowed) {
+
+				$fallbackMessage =
+					"RCON failed; waiting for automatic retry."
+
+			} else {
+
+				Write-Log "AUTO RCON RETRY [$($server.Name)]"
+
+				$global:RconFailureState.Remove($server.Name)
+
+				$global:RconRetryTime[$server.Name] =
+					Get-Date
+			}
+		}
         else {
             $rconWasTried = $true
 
@@ -221,7 +257,15 @@ function Get-ServerPlayers {
                     -Port $server.RconPort `
                     -Password $server.RconPassword `
                     -Command "status"
+				
+				# --- RCON RECOVERED SUCCESSFULLY ---
+				if ($global:RconFailureState.ContainsKey($server.Name)) {
+					$global:RconFailureState.Remove($server.Name)
+				}
 
+				if ($global:RconRetryTime.ContainsKey($server.Name)) {
+					$global:RconRetryTime.Remove($server.Name)
+				}
 				# ===============================
 				# RCON DATA VALIDATION (CRITICAL)
 				# ===============================
@@ -241,7 +285,7 @@ function Get-ServerPlayers {
 					Write-Log "RCON DEGRADED [$($server.Name)] Missing SteamIDs - forcing reset"
 
 					$global:RconFailureState[$server.Name] = "FAILED"
-
+					$global:RconRetryTime[$server.Name] = Get-Date
 					throw "RCON degraded (missing SteamIDs)"
 				}
 
@@ -437,6 +481,7 @@ function Get-ServerPlayers {
                 if (-not $global:RconFailureState.ContainsKey($server.Name) -or
                     $global:RconFailureState[$server.Name] -ne "FAILED") {
                     $global:RconFailureState[$server.Name] = "FAILED"
+					$global:RconRetryTime[$server.Name] = Get-Date
                 }
             }
         }

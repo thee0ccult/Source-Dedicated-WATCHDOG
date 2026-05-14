@@ -85,6 +85,11 @@ if (-not $global:RconFailureState) {
     $global:RconFailureState = @{}
 }
 
+# --- AUTO RCON RECOVERY TRACKING ---
+if (-not $global:RconRetryTime) {
+    $global:RconRetryTime = @{}
+}
+
 # --- A2S endpoint cache (GLOBAL, persists during runtime) ---
 if (-not $global:A2SPortCache) {
     $global:A2SPortCache = @{}
@@ -424,6 +429,7 @@ function Update-Status {
 						Write-Log "RCON STATUS FAILED [$serverName] Host=$($server.RconHost) Port=$($server.RconPort) :: $rconError"
 
 						$global:RconFailureState[$serverName] = "FAILED"
+						$global:RconRetryTime[$serverName] = Get-Date
 					}
 				}
 			}
