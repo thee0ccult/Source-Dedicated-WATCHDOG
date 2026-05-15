@@ -90,6 +90,11 @@ if (-not $global:RconRetryTime) {
     $global:RconRetryTime = @{}
 }
 
+# --- MANUAL RCON DISABLE LIST ---
+if (-not $global:RconDisabledServers) {
+    $global:RconDisabledServers = @{}
+}
+
 # --- A2S endpoint cache (GLOBAL, persists during runtime) ---
 if (-not $global:A2SPortCache) {
     $global:A2SPortCache = @{}
@@ -386,8 +391,14 @@ function Update-Status {
 		$serverName = $server.Name
 
 		# --- HARD SKIP: DO NOT TOUCH RCON IF FAILED ---
-		if ($global:RconFailureState.ContainsKey($serverName) -and
-			$global:RconFailureState[$serverName] -eq "FAILED") {
+if ($global:RconDisabledServers.ContainsKey($serverName)) {
+
+    $rconError = "RCON manually disabled"
+    $rconReachable = $false
+
+}
+elseif ($global:RconFailureState.ContainsKey($serverName) -and
+        $global:RconFailureState[$serverName] -eq "FAILED") {
 
 			$rconError = "Suppressed (RCON disabled after failure)"
 			$rconReachable = $false
@@ -518,6 +529,10 @@ function Update-Status {
             A2SCached    = if ($a2sEndpoint) { [bool]$a2sEndpoint.Cached } else { $false }
 			UseVgui      = Get-ServerUseVgui -server $server
             LockOut      = Get-ServerLockOut -server $server
+			
+			RconDisabled =
+				$global:RconDisabledServers.ContainsKey($server.Name)
+			
 			OriginalArgs = $server.Args
 			LaunchArgs   = Get-EffectiveServerArgs -server $server
 			ScriptStartTime = $globalScriptStart
@@ -734,6 +749,25 @@ function Process-CommandQueue {
                         Write-Log "Set LOCK OUT [$($server.Name)] => $lockOut"
                         Update-Status
                     }
+					"setRconDisabled" {
+						if ($cmd.disabled) {
+							$global:RconDisabledServers[$cmd.server] = $true
+							Write-Log `
+								"RCON AUTO-RECOVERY DISABLED [$($cmd.server)]"
+						} else {
+							if ($global:RconDisabledServers.ContainsKey($cmd.server)) {
+								$global:RconDisabledServers.Remove($cmd.server)
+							}
+							if ($global:RconFailureState.ContainsKey($cmd.server)) {
+								$global:RconFailureState.Remove($cmd.server)
+							}
+							if ($global:RconRetryTime.ContainsKey($cmd.server)) {
+								$global:RconRetryTime.Remove($cmd.server)
+							}
+							Write-Log `
+								"RCON AUTO-RECOVERY ENABLED [$($cmd.server)]"
+						}
+					}
 					"retryRcon" {
 					if ($global:RconFailureState.ContainsKey($server.Name)) {
 						$global:RconFailureState.Remove($server.Name)

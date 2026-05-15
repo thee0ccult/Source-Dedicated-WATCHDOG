@@ -732,6 +732,53 @@ if ($path -match "^/flags/([a-zA-Z0-9_-]+)\.gif$") {
     continue
 }
 
+# ==========================================
+# RCON TOGGLE API
+# ==========================================
+
+if ($path -eq "/api/rcon-toggle") {
+
+    try {
+
+        $reader =
+            New-Object IO.StreamReader($req.InputStream)
+
+        $body = $reader.ReadToEnd()
+
+        $json = $body | ConvertFrom-Json
+
+        $serverName = [string]$json.server
+        $disabled = [bool]$json.disabled
+
+        if ($disabled) {
+
+            $global:RconDisabledServers[$serverName] = $true
+
+            Write-Log `
+                "RCON MANUALLY DISABLED [$serverName]"
+
+        } else {
+
+            $global:RconDisabledServers.Remove($serverName)
+
+            Write-Log `
+                "RCON MANUAL DISABLE REMOVED [$serverName]"
+        }
+
+        $res.StatusCode = 200
+
+    } catch {
+
+        $res.StatusCode = 500
+
+        Write-Log `
+            "RCON TOGGLE API FAILED: $($_.Exception.Message)"
+    }
+
+    $res.Close()
+    continue
+}
+
 if ($path -eq "/api/users-list") {
 
     try {
@@ -1279,6 +1326,43 @@ if ($path -ne "/api/toggle-remote" -and $path -ne "/api/remote-status") {
                                     $res.OutputStream.Write($bytes, 0, $bytes.Length)
                                 }
                             }
+							"/api/set-rcon-disabled" {
+								if ($req.HttpMethod -ne "POST") {
+
+									$res.StatusCode = 405
+
+								} else {
+
+									$reader =
+										New-Object System.IO.StreamReader(
+											$req.InputStream,
+											$req.ContentEncoding
+										)
+
+									$body = $reader.ReadToEnd()
+									$reader.Close()
+
+									Add-Content `
+										-Path $queuePath `
+										-Value $body
+
+									Write-Output "RCON DISABLE QUEUED: $body"
+
+									$bytes =
+										[System.Text.Encoding]::UTF8.GetBytes(
+											'{"ok":true}'
+										)
+
+									$res.ContentType =
+										"application/json; charset=utf-8"
+
+									$res.OutputStream.Write(
+										$bytes,
+										0,
+										$bytes.Length
+									)
+								}
+							}
                             "/api/maps" {
                                 $serverName = [string]$req.QueryString["server"]
                                 $json = Get-ServerMapListJson -ServerName $serverName -Servers $servers

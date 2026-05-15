@@ -208,14 +208,24 @@ function Get-ServerPlayers {
     $rconWasTried = $false
 
     if (-not [string]::IsNullOrWhiteSpace($server.RconPassword)) {
-		if ($server.Name -ieq "gmod") {
+		# ==========================================
+		# MANUAL RCON DISABLE
+		# ==========================================
+
+		if ($global:RconDisabledServers.ContainsKey($server.Name)) {
 
 			$fallbackMessage =
-				"GMOD RCON player info excluded; using A2S_PLAYER fallback."
+				"RCON manually disabled for this server."
+
+			Write-Log `
+				"RCON DISABLED [$($server.Name)] - skipping reconnect attempts" `
+				Red `
+				-NoConsole
 
 		}
-		elseif ($global:RconFailureState.ContainsKey($server.Name) -and
-				$global:RconFailureState[$server.Name] -eq "FAILED") {
+		else {
+    if ($global:RconFailureState.ContainsKey($server.Name) -and
+        $global:RconFailureState[$server.Name] -eq "FAILED") {
 
 			$retryAllowed = $false
 
@@ -486,6 +496,8 @@ function Get-ServerPlayers {
             }
         }
     }
+	}
+
     else {
         $fallbackMessage = "RCON password is not configured; using A2S_PLAYER fallback."
     }

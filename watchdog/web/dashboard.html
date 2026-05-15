@@ -538,6 +538,32 @@ async function setLockOut(server, lockOut) {
     });
 }
 
+async function toggleRconDisabled(server, disabled) {
+
+    await api('/api/set-rcon-disabled', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            server,
+            action: 'setRconDisabled',
+            disabled: !!disabled
+        })
+    });
+
+    const target =
+        statusData.find(
+            x => x.Name === server
+        );
+
+    if (target) {
+        target.RconDisabled = disabled;
+    }
+
+    renderCards();
+}
+
 async function toggleRemote() {
     await api('/api/toggle-remote', { method: 'POST' });
     await refreshRemoteStatus();
@@ -1059,6 +1085,38 @@ function renderCards() {
             : ''
         }
     </label>
+
+<label style="
+    display:flex;
+    align-items:center;
+    gap:6px;
+    cursor:pointer;
+    margin-top:4px;
+">
+
+    <input
+        type="checkbox"
+        id="rcondisable-${server.Name}"
+        ${server.RconDisabled ? 'checked' : ''}
+        onchange="toggleRconDisabled('${server.Name}', this.checked)"
+    >
+
+    RCON DISABLED
+
+    ${
+        server.RconDisabled
+        ? `<span style="
+                color:#ff6262;
+                font-weight:700;
+                margin-left:6px;
+                text-shadow:0 0 6px rgba(255,0,0,0.6);
+            ">
+            [AUTO RCON RETRY DISABLED]
+           </span>`
+        : ''
+    }
+
+</label>
 
     <div style="margin-top:4px">
         Effective args: ${server.LaunchArgs ?? ''}
