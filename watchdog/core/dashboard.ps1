@@ -421,6 +421,17 @@ iframe{border:0;background:#000;border-radius:8px;display:block}
     </div>
 </div>
 
+<div class="row">
+    <div class="group">
+        <label for="playerLabelColor">Player Label Color</label>
+        <input id="playerLabelColor" type="text" value="dddddd" maxlength="6">
+    </div>
+    <div class="group">
+        <label for="playerValueColor">Player Value Color</label>
+        <input id="playerValueColor" type="text" value="dddddd" maxlength="6">
+    </div>
+</div>
+
 <div class="group">
     <label for="infoColor">Info Color</label>
     <input id="infoColor" type="text" value="dddddd" maxlength="6">
@@ -537,13 +548,13 @@ iframe{border:0;background:#000;border-radius:8px;display:block}
 <script>
 (function(){
 const presets = {
-    dark:   { bgColor:'111111', fontColor:'dddddd', infoColor:'dddddd', titleBgColor:'111111', titleColor:'ffffff', borderColor:'333333', linkColor:'57d957', borderStyle:'solid', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' },
-    light:  { bgColor:'f3f5f7', fontColor:'1e2328', infoColor:'1e2328', titleBgColor:'e7ebef', titleColor:'111111', borderColor:'c7d0d9', linkColor:'2e7dff', borderStyle:'solid', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' },
-    orange: { bgColor:'1a1310', fontColor:'f4d8c8', infoColor:'f4d8c8', titleBgColor:'241712', titleColor:'ffb26b', borderColor:'5d3a2a', linkColor:'ff8c42', borderStyle:'double', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' },
-    green:  { bgColor:'0f1712', fontColor:'d8f0df', infoColor:'d8f0df', titleBgColor:'132118', titleColor:'8ef0a4', borderColor:'29543a', linkColor:'5de07f', borderStyle:'solid', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' }
+    dark:   { bgColor:'111111', fontColor:'dddddd', infoColor:'dddddd', playerLabelColor:'dddddd', playerValueColor:'dddddd', titleBgColor:'111111', titleColor:'ffffff', borderColor:'333333', linkColor:'57d957', borderStyle:'solid', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' },
+    light:  { bgColor:'f3f5f7', fontColor:'1e2328', infoColor:'1e2328', playerLabelColor:'dddddd', playerValueColor:'dddddd', titleBgColor:'e7ebef', titleColor:'111111', borderColor:'c7d0d9', linkColor:'2e7dff', borderStyle:'solid', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' },
+    orange: { bgColor:'1a1310', fontColor:'f4d8c8', infoColor:'f4d8c8', playerLabelColor:'dddddd', playerValueColor:'dddddd', titleBgColor:'241712', titleColor:'ffb26b', borderColor:'5d3a2a', linkColor:'ff8c42', borderStyle:'double', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' },
+    green:  { bgColor:'0f1712', fontColor:'d8f0df', infoColor:'d8f0df', playerLabelColor:'dddddd', playerValueColor:'dddddd', titleBgColor:'132118', titleColor:'8ef0a4', borderColor:'29543a', linkColor:'5de07f', borderStyle:'solid', labelColor:'dddddd', valueColor:'dddddd', fontSize:'12' }
 };
 
-	const ids = ['theme','bgColor','fontColor','labelColor','valueColor','titleBgColor','titleColor','borderColor','linkColor','borderStyle','fontSize','width','frameHeight','playerHeight','showPlayers','showJoin','showTitle','showFooter'];
+	const ids = ['theme','bgColor','fontColor','labelColor','valueColor','playerLabelColor','playerValueColor','infoColor','titleBgColor','titleColor','borderColor','linkColor','borderStyle','fontSize','width','frameHeight','playerHeight','showPlayers','showJoin','showTitle','showFooter'];
 
 	const el = {};
 	ids.forEach(id => el[id] = document.getElementById(id));
@@ -567,6 +578,8 @@ const presets = {
             const p = presets[theme];
 el.bgColor.value = p.bgColor;
 el.fontColor.value = p.fontColor;
+el.playerLabelColor.value = p.playerLabelColor || p.fontColor;
+el.playerValueColor.value = p.playerValueColor || p.fontColor;
 el.infoColor.value = p.infoColor;
 el.titleBgColor.value = p.titleBgColor;
 el.titleColor.value = p.titleColor;
@@ -587,7 +600,11 @@ el.fontSize.value = p.fontSize;
 		params.set('bgColor', hex(el.bgColor.value, '111111'));
 		params.set('fontColor', hex(el.fontColor.value, 'dddddd'));
 		params.set('labelColor', hex(el.labelColor.value, hex(el.fontColor.value, 'dddddd')));
-		params.set('valueColor', hex(el.valueColor.value, hex(el.fontColor.value, 'dddddd')));		params.set('titleBgColor', hex(el.titleBgColor.value, '111111'));
+		params.set('valueColor', hex(el.valueColor.value, hex(el.fontColor.value, 'dddddd')));
+		params.set('titleBgColor', hex(el.titleBgColor.value, '111111'));
+		params.set('playerLabelColor', hex(el.playerLabelColor.value, hex(el.fontColor.value, 'dddddd')));
+		params.set('playerValueColor', hex(el.playerValueColor.value, hex(el.fontColor.value, 'dddddd')));
+		params.set('infoColor', hex(el.infoColor.value, hex(el.fontColor.value, 'dddddd')));
 		params.set('titleColor', hex(el.titleColor.value, 'ffffff'));
 		params.set('borderColor', hex(el.borderColor.value, '333333'));
 		params.set('linkColor', hex(el.linkColor.value, '57d957'));
@@ -918,6 +935,13 @@ if ($path -eq "/api/users-list") {
 						$infoColor = Get-SafeHex -Value $qs["infoColor"] -Default $fontColor
 						$labelColor = Get-SafeHex -Value $qs["labelColor"] -Default $infoColor
 						$valueColor = Get-SafeHex -Value $qs["valueColor"] -Default $infoColor
+						$playerLabelColor = Get-SafeHex `
+							-Value $qs["playerLabelColor"] `
+							-Default $fontColor
+
+						$playerValueColor = Get-SafeHex `
+							-Value $qs["playerValueColor"] `
+							-Default $fontColor
 						$titleBgColor = Get-SafeHex -Value $qs["titleBgColor"] -Default $defaultTitleBgColor
 						$titleColor = Get-SafeHex -Value $qs["titleColor"] -Default $defaultTitleColor
 						$borderColor = Get-SafeHex -Value $qs["borderColor"] -Default $defaultBorderColor
@@ -1012,6 +1036,8 @@ a{color:#$linkColor}
     gap:8px;
 
     opacity:0.75;
+
+    color:#$infoColor;
 }
 
 .watchdogFooter img{
@@ -1154,8 +1180,32 @@ if(profileUrl){
 
 html += '</div>';
 
-html += '<div class="small" style="opacity:0.7;">SteamID: ' + steamId + '</div>';
-html += '<div class="small">Ping: ' + (p.ping || '') + ' | Connected: ' + (p.connected || '') + '</div>';
+html += '<div class="small" style="opacity:0.7;">' +
+
+    '<span style="color:#$playerLabelColor;font-weight:600;">SteamID:</span> ' +
+
+    '<span style="color:#$playerValueColor;">' +
+        steamId +
+    '</span>' +
+
+'</div>';
+
+html += '<div class="small">' +
+
+    '<span style="color:#$playerLabelColor;font-weight:600;">Ping:</span> ' +
+
+    '<span style="color:#$playerValueColor;">' +
+        (p.ping || '') +
+    '</span>' +
+
+    '<span style="color:#$playerLabelColor;font-weight:600;"> | Connected:</span> ' +
+
+    '<span style="color:#$playerValueColor;">' +
+        (p.connected || '') +
+    '</span>' +
+
+'</div>';
+
 html += '</div>';
                 }
                 html += '</div>';
