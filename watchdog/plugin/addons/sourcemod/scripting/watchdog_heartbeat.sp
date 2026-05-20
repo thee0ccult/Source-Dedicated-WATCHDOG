@@ -46,10 +46,10 @@ public void OnPluginStart()
         "dr.N0s WATCHDOG"
     );
 
-    g_ServerName = CreateConVar(
-        "sm_watchdog_name",
-        "dods"
-    );
+	g_ServerName = CreateConVar(
+		"sm_watchdog_name",
+		""
+	);
 
     g_Region = CreateConVar(
         "sm_watchdog_region",
@@ -66,16 +66,16 @@ public void OnPluginStart()
         "watchdog_heartbeat"
     );
 
+	HookConVarChange(
+		g_Enabled,
+		OnWatchdogToggle
+	);
+
     RegAdminCmd(
         "sm_watchdog_test",
         Command_Test,
         ADMFLAG_ROOT
     );
-
-    CreateTimer(
-    5.0,
-    Timer_DelayedStart
-);
 
     LogMessage("[WATCHDOG] Plugin loaded");
 }
@@ -92,10 +92,47 @@ public void OnMapStart()
     );
 }
 
+public void OnWatchdogToggle(
+    ConVar convar,
+    const char[] oldValue,
+    const char[] newValue
+)
+{
+    if (!g_Enabled.BoolValue)
+    {
+        if (g_Timer != null)
+        {
+            KillTimer(g_Timer);
+            g_Timer = null;
+        }
+
+        LogMessage(
+            "[WATCHDOG] Heartbeat disabled"
+        );
+
+        return;
+    }
+
+    LogMessage(
+        "[WATCHDOG] Heartbeat enabled"
+    );
+
+    StartHeartbeatTimer();
+}
+
 public Action Timer_DelayedStart(
     Handle timer
 )
 {
+    if (!g_Enabled.BoolValue)
+    {
+        LogMessage(
+            "[WATCHDOG] Heartbeat disabled, timer not started"
+        );
+
+        return Plugin_Stop;
+    }
+
     StartHeartbeatTimer();
 
     LogMessage(
@@ -133,7 +170,13 @@ public Action Timer_Heartbeat(
 {
     if (!g_Enabled.BoolValue)
     {
-        return Plugin_Continue;
+        LogMessage(
+            "[WATCHDOG] Heartbeat timer stopped"
+        );
+
+        g_Timer = null;
+
+        return Plugin_Stop;
     }
 
     SendHeartbeat();
@@ -167,6 +210,25 @@ public Action Command_Test(
 
 void SendHeartbeat()
 {
+
+	char serverName[64];
+
+	g_ServerName.GetString(
+		serverName,
+		sizeof(serverName)
+	);
+
+	TrimString(serverName);
+
+	if (serverName[0] == '\0')
+	{
+		LogError(
+			"[WATCHDOG] sm_watchdog_name is empty"
+		);
+
+		return;
+	}
+
     char json[8192];
 
     BuildHeartbeatJson(
