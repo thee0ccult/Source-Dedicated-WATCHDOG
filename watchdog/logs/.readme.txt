@@ -1,0 +1,9 @@
+These are your core WATCHDOG logs files.
+view these files for server and player information
+and history.
+
+[!] if you wish to update your software be certain
+to save your usersdatabase.json AND userslist files.[!]
+
+[!] all logs files must be present when in use and
+will be automatically crafted upon use if missing [!]

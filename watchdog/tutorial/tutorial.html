@@ -1,0 +1,261 @@
+﻿<html>
+<head>
+</head>
+<body bgcolor="#660000">
+<table width="600px"><tr>
+<td><table><tr><td>
+<img src="logo_big.png" width="72px" height="60px"/><br /></td>
+<td><tf style="color:#CCCCCC; font-size:14px; font-weight:bold;">
+==========================================<br />
+=      SOURCE DEDICATED WATCHDOG         =<br />
+=      Brought to you by dr.N0           =<br />
+==========================================<br /></tf>
+</td></tr></table>
+
+<table><tr><td><tf style="color:#CCCCCC; font-size:14px; font-weight:bold;">
+Introductory \____________________________<br />
+This guide will show you how to install and configure<br />
+the source dedicated watchdog to your virtual or dedicated servers<br />
+and watch your own active source engine dedicated servers with some<br />
+control.<br /></tf></td></tr></table>
+<table><tr><td><tf style="color:#CCCCCC; font-size:14px; font-weight:bold;">
+===================================================================<br />
+Package Information \______________________________________________<br />
+After downloading the software watchdog.zip package and decompiling<br />
+the file system inside should contain<br />
+config/servers.ps1<br />
+watchdog.exe<br />
+watchdog.ps1<br />
+these 3 files configure and operate watchdog entirely. <br /></tf></td></tr></table>
+<table><tr><td><tf style="color:#CCCCCC; font-size:14px; font-weight:bold;">
+====================================================================<br />
+Step One \__________________________________________________________<br />
+<br />
+open a plain power shell console. this will be used initially to open<br />
+local area network access to the firewall for the watchdog software.<br />
+without this step initially the power shell software will not be able<br>
+to build the dashboard or handle the user or source engine dedicated<br>
+server data activity.<br />
+<br /><img src="psicon.png" /><br />
+firewall step for LAN access is: <br />
+in PowerShell Run as Administrator<br />
+<br /><img src="psplain.png" /><br>
+run this command line below____________________________<br />
+netsh http add urlacl url=http://+:8080/ user=Everyone<br />
+<br />
+after this step is completed run this next step commandline<br />
+right after.<br />
+<br />
+run this command line below_________________________________________________________________________________________<br />
+New-NetFirewallRule -DisplayName "Watchdog Dashboard" -Direction Inbound -LocalPort 8080 -Protocol TCP -Action Allow<br />
+<br />
+after this second command line is successful<br />
+close the power shell console when it is completed.<br /></tf>
+</td></tr></table>
+<table><tr><td><tf style="color:#CCCCCC; font-size:14px; font-weight:bold;">
+===================================================================<br />
+Step Two \_________________________________________________________<br />
+<br />
+After step one is complete OPEN your config/servers.ps1 file<br />
+preferably in NOTEPAD ++ or other coding software to prevent breaking<br />
+syntax.<br />
+<br /><img src="psdefines.png" width="400px" height="400px" /><br>
+
+you will see this code block<br />
+===================================================================<br />
+# --- Server Definitions ---<br />
+# Set RconPassword for each server to enable player monitoring and custom RCON commands.<br />
+$servers = @(<br />
+    @{<br />
+        Name = "sample1"<br />
+        Path = "C:\servers\sample1\srcds.exe "<br />
+		Exe = "srcds"<br />
+		Region = "dontknow"<br />
+        Args = "-console -game cstrike +map cs_assault -ip 06.606.66.60 -port 27066 +exec server.cfg"<br />
+        Port = 27066<br />
+		RconHost = "06.606.66.60"<br />
+        RconPort = 27066<br />
+        RconPassword = "currentpassword"<br />
+    },<br />
+    @{<br />
+        Name = "sample2"<br />
+        Path = "C:\servers\sample2\srcds.exe "<br />
+		Exe = "srcds"<br />
+		Region = "dontknow"<br />
+        Args = "-console -game cure +map cbe_bunker -ip 06.606.66.60 -port 27033 +exec server.cfg"<br />
+        Port = 27033<br />
+		RconHost = "06.606.66.60"<br />
+        RconPort = 27033<br />
+        RconPassword = "currentpassword"<br />
+		<br />
+    },<br />
+    @{<br />
+        Name = "sample3"<br />
+        Path = "C:\servers\sample3\othersrcds.exe"<br />
+		Exe = "othersrcds"<br />
+		Region = "dontknow"<br />
+        Args = "-console -game dab +map da_megachat -ip 06.606.66.60 -port 27099 +exec server.cfg"<br />
+        Port = 27099<br />
+		RconHost = "06.606.66.60"<br />
+        RconPort = 27099<br />
+        RconPassword = "currentpassword"<br />
+    }<br />
+)<br />
+===================================================================<br />
+The information in these code blocks needs to be changed to match Your current<br />
+active servers at hand. you can add as many code blocks as you have servers that <br />
+are currently active.<br />
+<br />
+[NOTE] You should set each server with -console and manage VGUI startups with<br />
+the dashboard. the setting with stick until watchdog is restarted.<br />
+<br />
+[NOTE] exe name MUST match the launching exe thats in the path folder for the mod<br />
+[NOTE] rcon password must be set to each individual servers ACTUAL rcon password.<br />
+rcon port matches your actual port for the server. rcon host is the servers ip.<br />
+<br /></tf></td></tr></table><table><tr><td><tf style="color:#CCCCCC; font-size:14px; font-weight:bold;">
+===================================================================<br />
+Step Three \_______________________________________________________<br />
+<br /><img src="psexe.png" /><br>
+
+once the code blocks are updated to your current active server or servers,<br />
+Run the watchdog software by clicking the watchdog.exe.<br />
+<br />
+this should start the watchdog completely, taking up to 2 to 3 minutes <br />
+launching the default web browser and opening the dashboard.html via<br />
+http://localhost:8080/<br />
+<br />
+OR just launchwatchdog.ps1 file as administrator.<br />
+-------------------------------------------------------------------<br />
+<br />
+a power shell console should start up when it initially loads up<br />
+[NOTE] power shell may prompt you to allow the watchdog softwares use.<br /> 
+type y and hit enter if you are prompted with the dialogue.<br />
+ <br /><img src="pslaunch.png" /><br>
+
+if successful red text should display Starting Watchdog.<br />
+following an onloading process similar to<br />
+WATCHDOG STARTING...<br />
+2026-04-30 21:55:45 - Loading core files...<br />
+2026-04-30 21:55:45 - WATCHDOG STARTED<br />
+2026-04-30 21:55:45 - Checking data files...<br />
+2026-04-30 21:55:45 - Loading launch preferences...<br />
+2026-04-30 21:55:46 - Scanning configured servers...<br />
+2026-04-30 21:55:50 - A2S OK [kvt] Host=74.91.123.66 Port=27027 | dr.N0s MYSTERIOUS sLAUGHTER HOUSE | t_hotel | Players=0/12<br />
+2026-04-30 21:56:13 - Building history cache...<br />
+2026-04-30 21:56:19 - Scanning player lists...<br />
+2026-04-30 21:56:24 - Creating dashboard redirect file...<br />
+2026-04-30 21:56:24 - Starting dashboard web server on port 8080...<br />
+2026-04-30 21:56:27 - Dashboard started on port 8080<br />
+2026-04-30 21:56:27 - Validating dashboard health...<br />
+2026-04-30 21:56:29 - Dashboard startup phase complete.<br />
+2026-04-30 21:56:29 - Startup validation phase...<br />
+2026-04-30 21:56:29 - kvt already running (PID 16996)<br />
+--- this window demonstration is official fully initialized at this point.<br />
+the last server is either started or already running and everything is<br />
+established in the dashboard.<br />
+<br /><img src="pspcconsole.png" width="400px" height="400px" /><br>
+
+scale this window down and tuck it somewhere or minimize. DO NOT CLOSE IT.<br />
+[!] this console stays open at all times when actively running[!]<br />
+to stop the programming just exit the watchdog power shell console out.<br />
+[if suspected still running just open task manager and stop Power Shell<br />
+as an active task from running. <br />
+<br />
+if you used watchdog.ps1 to start the software instead of the watchdog.exe<br />
+then<br />
+open a new web browser and display your dashboard panel.<br /></tf></td></tr></table><table><tr><td>
+<tf style="color:#CCCCCC; font-size:14px; font-weight:bold;">
+====================================================================<br />
+Dashboard Handling \________________________________________________<br />
+dashboard connection display-----------<br />
+<br />
+to view the dashboard from the start use this web browser address<br />
+on the server itself thats running the servers.<br />
+<br />
+http://localhost:8080/ for local server management<br />
+or<br />
+ServerIP:8080 <br />
+e.g http://11.234.56.78:8080/ for remote server management<br />
+<br />
+to view the panel after the initial start up from anywhere on the internet<br />
+use this url format<br />
+ServerIP:8080 e.g http://11.234.56.78:8080/ for remote server management<br />
+<br /><img src="psLIVE.png" width="400px" height="400px" /><br>
+
+=====================================================================<br />
+Foot Notes and Information \_________________________________________<br />
+<br />
+If everything is coded correctly you should see a dashboard<br />
+all servers live active information including active players<br />
+listed at the bottom.<br />
+<br />
+if a server is not already on within 1 - 3 minutes<br />
+the offline server should automatically be established again.<br />
+<br />
+[!]if a server does not restart automatically there could be code issues<br />
+during compile - check your servers.ps1 config file<br />
+or submit an official bug report[!]<br /></tf>
+<br /></td></tr></table><table><tr><td><tf style="color:#CCCCCC; font-size:14px; font-weight:bold;">
+------------- TIPS AND FAQ -------------------<br />
+after the initial power shell console opens PLEASE WAIT a few minutes<br />
+for the programming to finish, the dashboard will read 500 Internal Error.<br />
+refresh the dashboard web view every 30 seconds. <br />
+the dash board should come to life over time and the<br />
+dashboard itself refreshes automatically every 5 seconds when fully established.<br />
+<br />
+you can toggle remote access with the remote button. on means you<br />
+CAN connect from anywhere<br />
+off means you can CAN ONLY connect via localhost from the actual server itself.<br />
+<br />
+shut down the power shell console leave the dash board browser open.<br />
+then make server changes or updates.<br />
+then restart the watchdog.ps1 file as administrator again.<br />
+or use the lock server button after you STOP a server. itll stay off.<br />
+click the LOCK Server off and click START to start the server after quarantine.<br />
+<br />
+[!] if servers are already running and you start watchdog, if its starting<br />
+duplicate servers something is wrong and file configuration could be broken.<br />
+check syntax' and code for issues compiling. [!]<br />
+<br />
+use -console command to start a source dedicated server fully into online <br />
+status. in VGUI you will NEED to press the start button physically.<br />
+manage your VGUI start up from within watchdog<br />
+<br />
+[!] REMOTE DESKTOP AND NETWORKING MAY BE DELAYED! ONLY CLICK BUTTONS<br />
+ONCE AND WAITING FOR RESPONSE give time and check logs if you must<br />
+all button responses should always follow through if they look to have not worked.<br />
+if time has passed and it looks to have not then click again but be warey of <br />
+what functions your running while you use the software [!]<br />
+<br />
+To keep the power shell window open after crash by chance.<br />
+use this example<br />
+open powershell and run<br />
+powershell -NoExit -ExecutionPolicy Bypass -File "C:\Users\Administrator\Desktop\watchdog.ps1"<br />
+<br />
+[!] data and info can sometimes become buggy. its best to restart watchdog once a day<br />
+in the total deepest backend through all bugginess a true set up IS ALWAYS working<br />
+at its core. <br />
+you SHOULD AT LEAST ALWAYS <br />
+-have servers restarting when theyre offline<br />
+-have Online statuses for online servers.<br />
+-have working web browser widgets for each server regardless of broken data states.<br />
+<br />
+---- if these 3 features are not working watchdog is broken or not working correctly.<br />
+submit official bug reports if servers are not handling these core features correctly.<br />
+---- do not tamper with any of the files for watchdog<br />
+ONLY alter watchdog/config/servers.ps1 to set up active server details [!]<br />
+==========================================================================<br />
+Conclusion \______________________________________________________________<br />
+With this you should have watchdog running and ready to go.<br />
+<br />
+if you need assistance in setting up the software etc feel free to contact<br />
+dr.N0 at any of these addresses<br />
+http://drn0.site.nfoservers.com/hub/drn0/motdpage.php<br />
+https://gamebanana.com/tools/22368<br />
+dr.N0 STEAM ACCOUNT<br />
+https://steamcommunity.com/id/dr_n0</tf>
+</td>
+</tr>
+</table>
+</body>
+</html>

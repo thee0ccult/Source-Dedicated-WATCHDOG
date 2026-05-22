@@ -33,18 +33,10 @@ control.
 Package Information \______________________________________________
 After downloading the software watchdog.zip package and decompiling
 the file system inside should contain
-config [folder]-auth.ps1 servers.ps1
-core [folder]-dashboard.ps1 data.ps1 rcon.ps1 servers.ps1
-img [folder]-logo.png off.png on.png watchdog.ico
-logs [folder]-dashboard_commands.jsonl history.json launch_prefs.json players.json status.json watchdog_log.txt
-tutorial [folder]
-web [folder]-dashboard.html login.html
-auth.json
-dashboard.html
-readme.txt
+config/servers.ps1
 watchdog.exe
 watchdog.ps1
-for this official release this should be all thats contained for right now.
+these 3 files configure and operate watchdog entirely. 
 ====================================================================
 Step One \__________________________________________________________
 
@@ -81,6 +73,7 @@ $servers = @(
         Name = "sample1"
         Path = "C:\servers\sample1\srcds.exe "
 		Exe = "srcds"
+		Region = "dontknow"
         Args = "-console -game cstrike +map cs_assault -ip 06.606.66.60 -port 27066 +exec server.cfg"
         Port = 27066
 		RconHost = "06.606.66.60"
@@ -91,6 +84,7 @@ $servers = @(
         Name = "sample2"
         Path = "C:\servers\sample2\srcds.exe "
 		Exe = "srcds"
+		Region = "dontknow"
         Args = "-console -game cure +map cbe_bunker -ip 06.606.66.60 -port 27033 +exec server.cfg"
         Port = 27033
 		RconHost = "06.606.66.60"
@@ -102,6 +96,7 @@ $servers = @(
         Name = "sample3"
         Path = "C:\servers\sample3\othersrcds.exe"
 		Exe = "othersrcds"
+		Region = "dontknow"
         Args = "-console -game dab +map da_megachat -ip 06.606.66.60 -port 27099 +exec server.cfg"
         Port = 27099
 		RconHost = "06.606.66.60"

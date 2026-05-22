@@ -22,15 +22,28 @@ New-NetFirewallRule -DisplayName "Watchdog Dashboard" -Direction Inbound -LocalP
 step 2 -----------------------------------------------
 edit server definition code blocks
     @{
-        Name = "sample1"
-        Path = "C:\servers\sample1\srcds.exe "
+        Name = "sample2"
+        Path = "C:\servers\sample2\srcds.exe "
 		Exe = "srcds"
-        Args = "-console -game cstrike +map cs_assault -ip 06.606.66.60 -port 27066 +exec server.cfg"
-        Port = 27066
+		Region = "dontknow"
+        Args = "-console -game cure +map cbe_bunker -ip 06.606.66.60 -port 27033 +exec server.cfg"
+        Port = 27033
 		RconHost = "06.606.66.60"
-        RconPort = 27066
+        RconPort = 27033
         RconPassword = "currentpassword"
-    }
+		
+    }, <-- note this middle block comma ,
+    @{
+        Name = "sample3"
+        Path = "C:\servers\sample3\othersrcds.exe"
+		Exe = "othersrcds"
+		Region = "dontknow"
+        Args = "-console -game dab +map da_megachat -ip 06.606.66.60 -port 27099 +exec server.cfg"
+        Port = 27099
+		RconHost = "06.606.66.60"
+        RconPort = 27099
+        RconPassword = "currentpassword"
+    } <-- note this ending block lacking comma
 
 step 3 -------------------------------------------------
 Run watchdog.ps1 as Administrator [Please wait -+5 minutes]

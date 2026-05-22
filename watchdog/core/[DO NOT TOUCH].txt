@@ -1,0 +1,4 @@
+These are core Source Dedicated WATCHDOG Power Shell
+files. codes here should not be executed individually.
+only operate this files with watchdog.ps1 or
+the watchdog.exe.

@@ -1,0 +1,91 @@
+        ********************* 
+     *******************=--+**
+   ****=-=--------+****-***-**
+ ****=---#%---------=*+----+**
+ ***----=%%#----*@+---******* 
+***-----#%@*#**#%%----=****** 
+***-----%@@#*****#-----*****  
+***------***#%%**#-----****   
+***-----=*+++**+#%=----***    
+****---+#*+==++*#%@%--****    
+ ****--+*#*++**###---****     
+   ****-----------=****       
+    *******++++*******        
+       ************           
+[#]--------------------------[#]
+ - Source Dedicated WATCHDOG  - 
+ -     sourcemod plugin       - 
+ -  brought to you by dr.N0   - 
+[#]--------------------------[#]
+
+Software Information \_____________________
+This software has been tested with SOURCEMOD
+--------------------------------------------
+SourceMod 1.10.0.6490, by AlliedModders LLC
+To see running plugins, type "sm plugins"
+To see credits, type "sm credits"
+Visit http://www.sourcemod.net/
+___________________________________________
+This software has been tested with METAMOD
+--------------------------------------------
+] meta version
+Plugin interface version: 15:14
+Metamod:Source version 1.10.7-dev
+SourceHook version: 5:5
+Compiled on: Mar 28 2019
+http://www.metamodsource.net/
+
+Package Information \_____________________
+Once you download the plugin file system and/or Source Dedicated WATCHDOG
+you will find a plugins folder. within the plugins folder, starts the plugin
+file system entirely containing
+
+addons/metamod[empty]
+addons/sourcemod/
+- extensions/SteamWorks.ext.dll
+- plugins/watchdog_heartbeat.smx
+- scripting/include/steamworks.inc
+- scripting/watchdog_heartbeat.sp
+cfg/sourcemod/watchdog_heartbeat.cfg
+
+these files are the plugin file system entirely. these are the files you move
+into your sourcemod and metamod file system configuration for your source mod.
+[!] If you havent yet, INSTALL sourcemod and metamod FIRST then unpack the 
+plugins contents [!]
+
+Quick Install Guide \_____________________
+Once youve unpacked the contents for the plugin into your root sourcemod game
+directory e.g. cstrike/ l4d/ l4d2/ zps/
+go to your sourcemods base cfg/ directory and open your watchdog_heartbeat.cfg file
+in a code editing software or notepad.
+
+you will see these code lines
+sm_watchdog_enabled "1"
+sm_watchdog_master_url "http://drn0.site.nfoservers.com/hub/drn0/to0lb0x/watchdog/masterlist.php"
+sm_watchdog_api_key "SDW_26_V2_NML_H01OBWOME301DW5D10D99ANH60660"
+sm_watchdog_node "dr.N0s WATCHDOG"
+sm_watchdog_name "DEFAULT WATCHDOG"
+sm_watchdog_region "usa"
+sm_watchdog_interval "30.0"
+
+only change the node name, region and watchdog name.
+-name the node what you would call your cluster containing ALL your active servers.
+-name your watchdog name to your actual servers name.
+-name your region based off of the default list of provided regions and flag names.
+
+Once the server is started and watchdog is running it will automatically signal out
+the heart beat and the watchdog federation master list will recieve the heartbeat 
+and list the server, there you can find and utilize your watchdog web browser widget
+builder.
+you can find the master list at the address below
+http://drn0.site.nfoservers.com/hub/drn0/to0lb0x/watchdog/index.php
+
+Tips and Guidance \________________________
+This plugin can be used in conjuction with Source Dedicated WATCHDOG.
+
+If SDW fails to recieve player user information because of a sourcemods
+rcon limitations then use the plugin directly in the server file system to 
+send the data and use the watchdog federations master list system to provide 
+the servers widget.
+
+for more information visit drn0.site.nfoservers.com
