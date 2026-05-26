@@ -21,6 +21,7 @@ ConVar g_Node;
 ConVar g_ServerName;
 ConVar g_Region;
 ConVar g_Interval;
+ConVar g_ClaimServerKey;
 
 Handle g_Timer = null;
 
@@ -39,6 +40,11 @@ public void OnPluginStart()
 	g_ApiKey = CreateConVar(
 		"sm_watchdog_api_key",
 		"SDW_26_V2_NML_H01OBWOME301DW5D10D99ANH60660"
+	);
+
+	g_ClaimServerKey = CreateConVar(
+		"sm_watchdog_claimserver_key",
+		""
 	);
 
     g_Node = CreateConVar(
@@ -327,7 +333,7 @@ void BuildHeartbeatJson(
 	char node[128];
 	char serverName[64];
 	char region[64];
-	
+	char claimServerKey[64];
 
     GetConVarString(
         FindConVar("hostname"),
@@ -364,6 +370,11 @@ void BuildHeartbeatJson(
         region,
         sizeof(region)
     );
+	
+	g_ClaimServerKey.GetString(
+    claimServerKey,
+    sizeof(claimServerKey)
+	);
 	
     int humans = 0;
     int bots = 0;
@@ -492,7 +503,7 @@ void BuildHeartbeatJson(
 	Format(
 		output,
 		maxlen,
-		"[{\"serverId\":\"%s:%s\",\"node\":\"%s\",\"name\":\"%s\",\"region\":\"%s\",\"hostname\":\"%s\",\"map\":\"%s\",\"players\":\"%d humans, %d bots (%d max)\",\"onlinePlayers\":[%s],\"status\":\"ONLINE\",\"ip\":\"%s\",\"port\":%s,\"updated\":%d,\"watchdogPlugin\":true}]",
+		"[{\"serverId\":\"%s:%s\",\"node\":\"%s\",\"name\":\"%s\",\"region\":\"%s\",\"hostname\":\"%s\",\"map\":\"%s\",\"players\":\"%d humans, %d bots (%d max)\",\"onlinePlayers\":[%s],\"status\":\"ONLINE\",\"ip\":\"%s\",\"port\":%s,\"updated\":%d,\"watchdogPlugin\":true,\"claimServerKey\":\"%s\"}]",
 		ip,
 		portStr,
 		node,
@@ -506,7 +517,8 @@ void BuildHeartbeatJson(
 		players,
 		ip,
 		portStr,
-		unixTime
+		unixTime,
+		claimServerKey
 	);
 }
 

@@ -56,6 +56,8 @@ if (-not (Test-Path $heartbeatFolder)) {
 			ip         = $ip
 			port       = $port
 
+			claimServerKey = $ClaimServerKey
+
 			updated    = $server.UpdatedAt
 			updatedUtc = (Get-Date).ToUniversalTime().ToString("o")
 		}

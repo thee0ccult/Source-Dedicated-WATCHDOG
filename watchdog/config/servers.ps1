@@ -29,6 +29,10 @@ $masterHeartbeatFile = Join-Path $scriptRoot "data\master_heartbeat.json"
 $masterServerUrl = "http://drn0.site.nfoservers.com/hub/drn0/to0lb0x/watchdog/masterlist.php"
 # --- do not touch master api key ---
 $masterApiKey = "SDW_26_V2_NML_H01OBWOME301DW5D10D99ANH60660"
+# --- Server Claim Key ---
+# 32 chars max [BE SURE TO SET YOUR OWN KEY]
+# alphanumeric only - no spaces - no special characters
+$ClaimServerKey = "watchdogpowershell"
 
 # --- Start server definition between @{ and }, | only ending code blocks
 # --- end in a single closing bracket }
