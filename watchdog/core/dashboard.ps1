@@ -750,6 +750,74 @@ if ($path -match "^/flags/([a-zA-Z0-9_-]+)\.gif$") {
     continue
 }
 
+if ($path -match "^/games/(.+)\.png$") {
+
+    $gameName =
+        [System.Uri]::UnescapeDataString(
+            $Matches[1]
+        )
+
+    $gamePath =
+        Join-Path $scriptRoot "img\games\$gameName.png"
+
+    if (Test-Path $gamePath) {
+
+        try {
+
+            $bytes =
+                [System.IO.File]::ReadAllBytes($gamePath)
+
+            $res.StatusCode = 200
+            $res.ContentType = "image/png"
+            $res.ContentLength64 = $bytes.Length
+
+            $res.OutputStream.Write(
+                $bytes,
+                0,
+                $bytes.Length
+            )
+
+        }
+        catch {
+
+            $res.StatusCode = 500
+
+        }
+
+    }
+    else {
+
+        $fallback =
+            Join-Path $scriptRoot "img\games\Source Engine.png"
+
+        if (Test-Path $fallback) {
+
+            $bytes =
+                [System.IO.File]::ReadAllBytes($fallback)
+
+            $res.StatusCode = 200
+            $res.ContentType = "image/png"
+            $res.ContentLength64 = $bytes.Length
+
+            $res.OutputStream.Write(
+                $bytes,
+                0,
+                $bytes.Length
+            )
+
+        }
+        else {
+
+            $res.StatusCode = 404
+
+        }
+
+    }
+
+    $res.OutputStream.Close()
+    continue
+}
+
 # ==========================================
 # RCON TOGGLE API
 # ==========================================
@@ -1125,7 +1193,30 @@ statusHtml += '</div>';
 html += statusHtml;
 html += '<div class="meta">';
 
-html += '<span class="label">Game:</span> <span class="value">' + (data.modName || 'Source Engine') + '</span><br>';
+html +=
+'<div style="display:flex;align-items:center;gap:6px;">' +
+
+'<img ' +
+'src="/games/' +
+encodeURIComponent(data.modName || 'Source Engine') +
+'.png" ' +
+
+'onerror="this.src=\'/games/Source%20Engine.png\'" ' +
+
+'style="' +
+'width:16px;' +
+'height:16px;' +
+'object-fit:contain;' +
+'flex-shrink:0;' +
+'">' +
+
+'<span class="label">Game:</span> ' +
+
+'<span class="value">' +
+(data.modName || 'Source Engine') +
+'</span>' +
+
+'</div>';
 html += '<span class="label">Hostname:</span> <span class="value">' + (data.hostname || '') + '</span><br>';
 html += '<span class="label">Address:</span> <span class="value">' + ((data.ip || '') + ':' + (data.port || '')) + '</span><br>';
 html += '<span class="label">Map:</span> <span class="value">' + (data.map || '') + '</span><br>';

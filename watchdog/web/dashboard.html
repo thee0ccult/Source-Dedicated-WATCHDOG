@@ -1020,7 +1020,31 @@ function renderCards() {
     <div class="${statusClass}">${server.Status}</div>
 
     <div class="meta">
-		Game: ${server.ModName ?? 'Source Engine'}<br>
+		<div class="meta">
+
+    <div style="
+        display:flex;
+        align-items:center;
+        gap:6px;
+        margin-bottom:2px;
+    ">
+
+        <img
+            src="/games/${encodeURIComponent(server.ModName ?? 'Source Engine')}.png"
+            onerror="this.src='/games/Source%20Engine.png'"
+            style="
+                width:16px;
+                height:16px;
+                object-fit:contain;
+                flex-shrink:0;
+            "
+        >
+
+        <span>
+            Game: ${server.ModName ?? 'Source Engine'}
+        </span>
+
+    </div>
         Hostname: ${server.Hostname ?? ''}<br>
         UDP/IP: ${server.UdpIp ?? ''}<br>
         Port: ${server.Port ?? ''} | PID: ${server.PID ?? ''}<br>
