@@ -523,6 +523,7 @@ elseif ($global:RconFailureState.ContainsKey($serverName) -and
             Port         = $server.Port
             Exe          = $server.Exe
 			Region       = $server.Region
+			ModName      = Resolve-SourceModGameName $server.ModName
 			RconHost 	 = $server.RconHost
             A2SHost      = if ($a2sEndpoint) { $a2sEndpoint.Host } else { $null }
             A2SPort      = if ($a2sEndpoint) { $a2sEndpoint.Port } else { $null }

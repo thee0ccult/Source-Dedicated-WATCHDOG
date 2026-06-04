@@ -328,6 +328,7 @@ if ([string]::IsNullOrWhiteSpace($port)) {
 $safe = @{
     name          = $server.Name
 	region        = $server.Region
+	modName       = if ($server.ModName) { $server.ModName } else { "Source Engine" }
     hostname      = $server.Hostname
     status        = $server.Status
     map           = $server.Map
@@ -1124,6 +1125,7 @@ statusHtml += '</div>';
 html += statusHtml;
 html += '<div class="meta">';
 
+html += '<span class="label">Game:</span> <span class="value">' + (data.modName || 'Source Engine') + '</span><br>';
 html += '<span class="label">Hostname:</span> <span class="value">' + (data.hostname || '') + '</span><br>';
 html += '<span class="label">Address:</span> <span class="value">' + ((data.ip || '') + ':' + (data.port || '')) + '</span><br>';
 html += '<span class="label">Map:</span> <span class="value">' + (data.map || '') + '</span><br>';

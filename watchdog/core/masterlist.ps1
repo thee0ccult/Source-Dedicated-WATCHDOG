@@ -46,7 +46,7 @@ if (-not (Test-Path $heartbeatFolder)) {
 
 			name       = $server.Name
 			region     = $server.Region
-
+			modName    = if ($server.ModName) { $server.ModName } else { "Source Engine" }
 			hostname   = $server.Hostname
 			map        = $server.Map
 			players    = $server.PlayersInfo

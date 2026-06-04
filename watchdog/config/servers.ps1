@@ -34,6 +34,54 @@ $masterApiKey = "SDW_26_V2_NML_H01OBWOME301DW5D10D99ANH60660"
 # alphanumeric only - no spaces - no special characters
 $ClaimServerKey = "watchdogpowershell"
 
+
+# --- SourceMod Game Name Labels ---
+# Used by dashboard widgets and watchdog federation master list.
+# If ModName is missing, blank, or not listed here, it falls back to "Source Engine".
+# A Nights Haunting Source-Counter Strike Source-Code Name Cure-Contagion-Double Action Boogaloo
+#Day of Defeat Source-Fistful Of Frags-Golden Eye Source-Garrys Mod-The Hidden Source
+#Half Life 2 Death Match-Klaus Veens Treason-Left 4 Dead-Left 4 Dead 2-No More Room In Hell
+#Neotokyo Source-Nuclear Dawn-Source Engine-Team Fortress 2-Zombie Panic Source
+$SourceModGameNames = @(
+    "A Nights Haunting Source"
+    "Counter Strike Source"
+    "Code Name Cure"
+    "Contagion"
+    "Double Action Boogaloo"
+    "Day of Defeat Source"
+    "Fistful Of Frags"
+    "Golden Eye Source"
+    "Garrys Mod"
+    "The Hidden Source"
+    "Half Life 2 Death Match"
+    "Klaus Veens Treason"
+    "Left 4 Dead"
+    "Left 4 Dead 2"
+    "No More Room In Hell"
+    "Neotokyo Source"
+    "Nuclear Dawn"
+    "Source Engine"
+    "Team Fortress 2"
+    "Zombie Panic Source"
+)
+
+function Resolve-SourceModGameName {
+    param(
+        [AllowNull()]
+        [string]$ModName
+    )
+
+    $clean = ([string]$ModName).Trim()
+
+    foreach ($game in $SourceModGameNames) {
+        if ($game.Equals($clean, [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $game
+        }
+    }
+
+    return "Source Engine"
+}
+
 # --- Start server definition between @{ and }, | only ending code blocks
 # --- end in a single closing bracket }
 # --- path exe and exe must match! port and rcon port must match!
@@ -45,6 +93,7 @@ $servers = @(
         Path = "C:\servers\sample1\srcds.exe "
 		Exe = "srcds"
 		Region = "dontknow"
+		ModName = "Source Engine"
         Args = "-console -game cstrike +map cs_assault -ip 06.606.66.60 -port 27066 +exec server.cfg"
         Port = 27066
 		RconHost = "06.606.66.60"
@@ -56,6 +105,7 @@ $servers = @(
         Path = "C:\servers\sample2\srcds.exe "
 		Exe = "srcds"
 		Region = "dontknow"
+		ModName = "Source Engine"
         Args = "-console -game cure +map cbe_bunker -ip 06.606.66.60 -port 27033 +exec server.cfg"
         Port = 27033
 		RconHost = "06.606.66.60"
@@ -68,6 +118,7 @@ $servers = @(
         Path = "C:\servers\sample3\othersrcds.exe"
 		Exe = "othersrcds"
 		Region = "dontknow"
+		ModName = "Source Engine"
         Args = "-console -game dab +map da_megachat -ip 06.606.66.60 -port 27099 +exec server.cfg"
         Port = 27099
 		RconHost = "06.606.66.60"

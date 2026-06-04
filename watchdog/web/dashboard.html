@@ -1020,6 +1020,7 @@ function renderCards() {
     <div class="${statusClass}">${server.Status}</div>
 
     <div class="meta">
+		Game: ${server.ModName ?? 'Source Engine'}<br>
         Hostname: ${server.Hostname ?? ''}<br>
         UDP/IP: ${server.UdpIp ?? ''}<br>
         Port: ${server.Port ?? ''} | PID: ${server.PID ?? ''}<br>
