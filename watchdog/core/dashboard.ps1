@@ -992,34 +992,34 @@ if ($path -eq "/api/users-list") {
                                 $defaultBgColor = "111111"
                                 $defaultFontColor = "dddddd"
                                 $defaultTitleBgColor = "111111"
-                                $defaultTitleColor = "ffffff"
+                                $defaultTitleColor = "cc3333"
                                 $defaultBorderColor = "333333"
-                                $defaultLinkColor = "57d957"
+                                $defaultLinkColor = "cc3333"
                                 $defaultBorderStyle = "solid"
                             }
                         }
 
 						$bgColor = Get-SafeHex -Value $qs["bgColor"] -Default $defaultBgColor
 						$fontColor = Get-SafeHex -Value $qs["fontColor"] -Default $defaultFontColor
-						$infoColor = Get-SafeHex -Value $qs["infoColor"] -Default $fontColor
-						$labelColor = Get-SafeHex -Value $qs["labelColor"] -Default $infoColor
-						$valueColor = Get-SafeHex -Value $qs["valueColor"] -Default $infoColor
+						$infoColor = Get-SafeHex -Value $qs["infoColor"] -Default "f4b5b5"
+						$labelColor = Get-SafeHex -Value $qs["labelColor"] -Default "f48585"
+						$valueColor = Get-SafeHex -Value $qs["valueColor"] -Default "fce9e9"
 						$playerLabelColor = Get-SafeHex `
 							-Value $qs["playerLabelColor"] `
-							-Default $fontColor
+							-Default "f4b5b5"
 
 						$playerValueColor = Get-SafeHex `
 							-Value $qs["playerValueColor"] `
-							-Default $fontColor
+							-Default "fce9e9"
 						$titleBgColor = Get-SafeHex -Value $qs["titleBgColor"] -Default $defaultTitleBgColor
 						$titleColor = Get-SafeHex -Value $qs["titleColor"] -Default $defaultTitleColor
 						$borderColor = Get-SafeHex -Value $qs["borderColor"] -Default $defaultBorderColor
 						$linkColor = Get-SafeHex -Value $qs["linkColor"] -Default $defaultLinkColor
 						$borderStyle = Get-SafeEnum -Value $qs["borderStyle"] -Allowed @("solid","double","minimal") -Default $defaultBorderStyle
-                        $width = Get-SafeInt -Value $qs["width"] -Default 260 -Min 144 -Max 1200
-                        $fontSize = Get-SafeInt -Value $qs["fontSize"] -Default 12 -Min 10 -Max 18
-                        $playerHeight = Get-SafeInt -Value $qs["playerHeight"] -Default 180 -Min 100 -Max 800
-						$frameHeight = Get-SafeInt -Value $qs["frameHeight"] -Default 420 -Min 200 -Max 2000
+                        $width = Get-SafeInt -Value $qs["width"] -Default 400 -Min 400 -Max 900
+                        $fontSize = Get-SafeInt -Value $qs["fontSize"] -Default 12 -Min 10 -Max 24
+						$playerHeight = Get-SafeInt -Value $qs["playerHeight"] -Default 440 -Min 440 -Max 800
+						$frameHeight = Get-SafeInt -Value $qs["frameHeight"] -Default 660 -Min 660 -Max 1200
 						$showPlayers = Get-SafeBool -Value $qs["showPlayers"] -Default $true
 						$showJoin = Get-SafeBool -Value $qs["showJoin"] -Default $true
 						$showTitle = Get-SafeBool -Value $qs["showTitle"] -Default $true
@@ -1046,17 +1046,20 @@ body{
 .wrap{
     width:${width}px;
     height:${frameHeight}px;
-    padding:10px;
+    box-sizing:border-box;
     border:1px $(if ($borderStyle -eq "minimal") { "solid" } else { $borderStyle }) #$borderColor;
     background:#$bgColor;
-    box-sizing:border-box;
-
-    display:flex;
-    flex-direction:column;
+    padding:5px;
+    overflow:hidden;
 }
-.title{font-size:$([int]($fontSize + 2))px;font-weight:700;color:#$titleColor;background:#$titleBgColor;margin:-10px -10px 8px -10px;padding:0px;border-bottom:1px solid #$borderColor}
+.title{
+    font-size:$([int]($fontSize + 3))px;
+    font-weight:bold;
+    color:#$linkColor;
+    margin-bottom:4px;
+}
 .status{
-    margin-bottom:6px;
+    margin-bottom:4px;
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -1064,29 +1067,30 @@ body{
 }
 .online{color:#$linkColor;font-weight:700}
 .offline{color:#ff6666;font-weight:700}
-.meta{line-height:1.45;word-wrap:break-word}
+.meta{line-height:1.35;word-wrap:break-word}
 .meta .label{color:#$labelColor;font-weight:600}
 .meta .value{color:#$valueColor}
 .players{
-    margin-top:8px;
-    height:${playerHeight}px;
+    margin-top:3px;
+    max-height:${playerHeight}px;
     overflow-y:auto;
     border-top:1px solid #$borderColor;
-    padding-top:8px;
-    flex-shrink:0;
+    padding-top:2px;
 }
-.player{padding:4px 0;border-bottom:1px solid #$borderColor}
+.player{
+    margin-bottom:2px;
+    padding-bottom:2px;
+    border-bottom:1px solid #$borderColor;
+}
 .small{font-size:$([Math]::Max($fontSize-1,10))px;color:#$fontColor;opacity:0.85}
 .join-btn{
-    padding:1px 6px;
-    font-size:0.9em;
-    line-height:1.2;
-    font-weight:600;
-    border-radius:4px;
-    border:1px solid #$borderColor;
+    display:inline-block;
+    padding:1px 2px;
     background:#$linkColor;
     color:#000;
     text-decoration:none;
+    border-radius:1px;
+    font-weight:bold;
     white-space:nowrap;
 }
 .join-btn:hover{
@@ -1095,8 +1099,8 @@ body{
 .error{color:#ff6666}
 a{color:#$linkColor}
 .watchdogFooter{
-    margin-top:10px;
-    padding-top:8px;
+    margin-top:5px;
+    padding-top:4px;
     border-top:1px solid #$borderColor;
 
     display:flex;
@@ -1303,14 +1307,14 @@ html += '</div>';
                 }
                 html += '</div>';
             } else {
-                html += '<div class="small" style="margin-top:8px;">No players connected</div>';
+                html += '<div class="small" style="margin-top:3px;color:#$labelColor;font-weight:bold;">No players connected</div>';
             }
         }
 if(showFooter){
 
     html += '<div class="watchdogFooter">' +
             '<img src="' + window.location.origin + '/logo_bit.png">' +
-            '<span>Guarded by WATCHDOG</span>' +
+            '<span>Guarded by WATCHDOG Federation</span>' +
             '</div>';
 }
 
