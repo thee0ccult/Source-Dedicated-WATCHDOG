@@ -1,0 +1,2385 @@
+**********************
+Windows PowerShell transcript start
+Start time: 20260626124811
+Username: DOCTORN0\Administrator
+RunAs User: DOCTORN0\Administrator
+Configuration Name: 
+Machine: DOCTORN0 (Microsoft Windows NT 10.0.17763.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command if((Get-ExecutionPolicy ) -ne 'AllSigned') { Set-ExecutionPolicy -Scope Process Bypass }; & 'C:\servers\watchdog\relay\watchdog_relay.ps1'
+Process ID: 44100
+PSVersion: 5.1.17763.8641
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.17763.8641
+BuildVersion: 10.0.17763.8641
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is C:\servers\watchdog\relay\logs\watchdog_relay_20260626_124811.log
+            +######################+
+        ########################++####
+     +######++-----++#########-+++-+##
+   +#####---+-----------#####--###++##
+  ####+----+##------------##+------###
+ +###------####------+#+---+#########+
+####+-----+#####++-+###-----+#######+
+###+------+######+++###------######+
+###+------######+++++#+------######
+###+-------+#+++###++#+------+####
+###+-------++++++#+++#+------#####
+####------+#++++++++####+---+###+
+ ####----+##+++++++######--+####
+  ####+--++#+++++++###+---+####
+   #####----------------+####+
+     ######+---------######+
+       +#################+
+           ##########+
+=========================================
+      SOURCE DEDICATED WATCHDOG
+      Brought to you by dr.N0
+=========================================
+
+[REGISTER] Registering relay node...
+
+[SUCCESS] Registration successful.
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 7F 0E 73 6C
+
+[SUCCESS] Final packet received.
+Packet Length: 166 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : cs_thunder2006
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 7F 0E 73 6C
+
+[PLAYERS] Found 8 players.
+  Pat | Score: 2 | 62155s
+  Shawn | Score: 14 | 62155s
+  Tim | Score: 4 | 62155s
+  Waldo | Score: 3 | 62155s
+  Walt | Score: 2 | 62155s
+  Clarence | Score: 5 | 62155s
+  Elmer | Score: 5 | 62155s
+  Wally | Score: 4 | 62155s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 7F 0E 73 6C
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2277 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 4D 01 4C C4
+
+[SUCCESS] Final packet received.
+Packet Length: 184 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : bg_horseshoe
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 4D 01 4C C4
+
+[PLAYERS] Found 2 players.
+  loop | Score: 0 | 42366s
+  Buckshot | Score: 0 | 42366s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 4D 01 4C C4
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4863 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 39 90 41 A9
+
+[SUCCESS] Final packet received.
+Packet Length: 195 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 3 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 39 90 41 A9
+
+[PLAYERS] Found 3 players.
+  Tvoroshik | Score: 67 | 2244s
+  ツRENGOKツ | Score: 77 | 829s
+  ✿Hello Kitty✿ | Score: 3 | 408s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 3 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 39 90 41 A9
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 83 DC 03 E9
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 83 DC 03 E9
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 83 DC 03 E9
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 69 BB 15 CC
+
+[SUCCESS] Final packet received.
+Packet Length: 166 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : cs_thunder2006
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 69 BB 15 CC
+
+[PLAYERS] Found 8 players.
+  Pat | Score: 3 | 62222s
+  Shawn | Score: 14 | 62222s
+  Tim | Score: 4 | 62222s
+  Waldo | Score: 3 | 62222s
+  Walt | Score: 2 | 62222s
+  Clarence | Score: 6 | 62222s
+  Elmer | Score: 5 | 62222s
+  Wally | Score: 4 | 62222s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 69 BB 15 CC
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2277 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 1F 20 EE 38
+
+[SUCCESS] Final packet received.
+Packet Length: 184 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : bg_horseshoe
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 1F 20 EE 38
+
+[PLAYERS] Found 2 players.
+  loop | Score: 0 | 42433s
+  Buckshot | Score: 0 | 42433s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 1F 20 EE 38
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4863 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 20 40 5F C4
+
+[SUCCESS] Final packet received.
+Packet Length: 195 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 3 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 20 40 5F C4
+
+[PLAYERS] Found 3 players.
+  Tvoroshik | Score: 70 | 2310s
+  ツRENGOKツ | Score: 112 | 896s
+  ✿Hello Kitty✿ | Score: 3 | 474s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 3 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 20 40 5F C4
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 16 C9 F8 6B
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 16 C9 F8 6B
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 16 C9 F8 6B
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 6E 83 CB CC
+
+[SUCCESS] Final packet received.
+Packet Length: 166 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : cs_thunder2006
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 6E 83 CB CC
+
+[PLAYERS] Found 8 players.
+  Pat | Score: 3 | 62289s
+  Shawn | Score: 17 | 62289s
+  Tim | Score: 5 | 62289s
+  Waldo | Score: 3 | 62289s
+  Walt | Score: 2 | 62289s
+  Clarence | Score: 7 | 62289s
+  Wally | Score: 4 | 62289s
+  Irving | Score: 0 | 62289s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 6E 83 CB CC
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2277 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: AB 3C 51 67
+
+[SUCCESS] Final packet received.
+Packet Length: 184 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : bg_horseshoe
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: AB 3C 51 67
+
+[PLAYERS] Found 2 players.
+  loop | Score: 0 | 42500s
+  Buckshot | Score: 0 | 42500s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: AB 3C 51 67
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4863 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 58 D7 FD 8B
+
+[SUCCESS] Final packet received.
+Packet Length: 195 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 3 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 58 D7 FD 8B
+
+[PLAYERS] Found 3 players.
+  Tvoroshik | Score: 70 | 2376s
+  ツRENGOKツ | Score: 118 | 962s
+  ✿Hello Kitty✿ | Score: 3 | 540s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 3 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 58 D7 FD 8B
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 1A D6 B7 2F
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 1A D6 B7 2F
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 1A D6 B7 2F
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 5C 0B 7C DC
+
+[SUCCESS] Final packet received.
+Packet Length: 166 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : cs_thunder2006
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 5C 0B 7C DC
+
+[PLAYERS] Found 8 players.
+  Pat | Score: 3 | 62354s
+  Shawn | Score: 17 | 62354s
+  Tim | Score: 6 | 62354s
+  Waldo | Score: 3 | 62354s
+  Walt | Score: 2 | 62354s
+  Clarence | Score: 7 | 62354s
+  Wally | Score: 4 | 62354s
+  Irving | Score: 0 | 62354s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 5C 0B 7C DC
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2277 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: A1 3D 86 D3
+
+[SUCCESS] Final packet received.
+Packet Length: 184 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : bg_horseshoe
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: A1 3D 86 D3
+
+[PLAYERS] Found 2 players.
+  loop | Score: 0 | 42565s
+  Buckshot | Score: 0 | 42565s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: A1 3D 86 D3
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4863 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 13 3C 37 5C
+
+[SUCCESS] Final packet received.
+Packet Length: 195 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 4 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 13 3C 37 5C
+
+[PLAYERS] Found 4 players.
+  Tvoroshik | Score: 73 | 2442s
+  ツRENGOKツ | Score: 121 | 1027s
+  ✿Hello Kitty✿ | Score: 4 | 606s
+   | Score: 0 | 3s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 4 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 13 3C 37 5C
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: BC 38 10 A6
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: BC 38 10 A6
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: BC 38 10 A6
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: C0 36 AA 3B
+
+[SUCCESS] Final packet received.
+Packet Length: 166 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : cs_thunder2006
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: C0 36 AA 3B
+
+[PLAYERS] Found 8 players.
+  Pat | Score: 3 | 62420s
+  Shawn | Score: 19 | 62420s
+  Tim | Score: 6 | 62420s
+  Waldo | Score: 3 | 62420s
+  Walt | Score: 2 | 62420s
+  Clarence | Score: 8 | 62420s
+  Wally | Score: 4 | 62420s
+  Irving | Score: 0 | 62420s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: C0 36 AA 3B
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2277 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 08 01 1F 3C
+
+[SUCCESS] Final packet received.
+Packet Length: 184 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : bg_horseshoe
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 08 01 1F 3C
+
+[PLAYERS] Found 2 players.
+  loop | Score: 0 | 42631s
+  Buckshot | Score: 0 | 42631s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 08 01 1F 3C
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4863 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: CF 4F BC F7
+
+[SUCCESS] Final packet received.
+Packet Length: 195 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 4 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: CF 4F BC F7
+
+[PLAYERS] Found 4 players.
+  Tvoroshik | Score: 75 | 2507s
+  ツRENGOKツ | Score: 145 | 1093s
+  ✿Hello Kitty✿ | Score: 6 | 672s
+  ErBraciola | Score: 0 | 69s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 4 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: CF 4F BC F7
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 81 17 00 F9
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 81 17 00 F9
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 81 17 00 F9
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 35 C6 BA 6C
+
+[SUCCESS] Final packet received.
+Packet Length: 166 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : cs_thunder2006
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 35 C6 BA 6C
+
+[PLAYERS] Found 8 players.
+  Pat | Score: 3 | 62486s
+  Shawn | Score: 19 | 62486s
+  Tim | Score: 6 | 62486s
+  Waldo | Score: 3 | 62486s
+  Walt | Score: 3 | 62486s
+  Clarence | Score: 10 | 62486s
+  Wally | Score: 4 | 62486s
+  Irving | Score: 0 | 62486s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 35 C6 BA 6C
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2277 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: A2 00 D0 6A
+
+[SUCCESS] Final packet received.
+Packet Length: 184 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : bg_horseshoe
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: A2 00 D0 6A
+
+[PLAYERS] Found 2 players.
+  loop | Score: 0 | 42696s
+  Buckshot | Score: 0 | 42696s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: A2 00 D0 6A
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4863 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 31 BA E1 64
+
+[SUCCESS] Final packet received.
+Packet Length: 195 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 4 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 31 BA E1 64
+
+[PLAYERS] Found 4 players.
+  Tvoroshik | Score: 75 | 2573s
+  ツRENGOKツ | Score: 157 | 1158s
+  ✿Hello Kitty✿ | Score: 12 | 737s
+  ErBraciola | Score: 9 | 134s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 4 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 31 BA E1 64
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 53 5B 55 B8
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 53 5B 55 B8
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 53 5B 55 B8
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 7D 53 CC 6D
+
+[SUCCESS] Final packet received.
+Packet Length: 161 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : de_boston
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 7D 53 CC 6D
+
+[PLAYERS] Found 8 players.
+  Calvin | Score: 0 | 62551s
+  Lester | Score: 0 | 62551s
+  Ferris | Score: 0 | 62551s
+  George | Score: 0 | 62551s
+  Frank | Score: 0 | 62551s
+  Ulysses | Score: 0 | 62551s
+  Niles | Score: 0 | 62551s
+  Wesley | Score: 0 | 62551s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 7D 53 CC 6D
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2284 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 52 AB A2 20
+
+[SUCCESS] Final packet received.
+Packet Length: 184 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : bg_horseshoe
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 52 AB A2 20
+
+[PLAYERS] Found 2 players.
+  loop | Score: 0 | 42762s
+  Buckshot | Score: 0 | 42762s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 52 AB A2 20
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4863 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 8E 44 7A A1
+
+[SUCCESS] Final packet received.
+Packet Length: 193 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 4 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 8E 44 7A A1
+
+[PLAYERS] Found 4 players.
+  Tvoroshik | Score: 75 | 2639s
+  ツRENGOKツ | Score: 164 | 1224s
+  ✿Hello Kitty✿ | Score: 18 | 803s
+  ErBraciola | Score: 13 | 200s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 4 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 8E 44 7A A1
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 25 CA 01 AC
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 25 CA 01 AC
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 25 CA 01 AC
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 23 0D 80 82
+
+[SUCCESS] Final packet received.
+Packet Length: 161 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : de_boston
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 23 0D 80 82
+
+[PLAYERS] Found 8 players.
+  Calvin | Score: 0 | 62617s
+  Lester | Score: 0 | 62617s
+  Ferris | Score: 2 | 62617s
+  George | Score: 2 | 62617s
+  Frank | Score: 1 | 62617s
+  Ulysses | Score: 1 | 62617s
+  Niles | Score: 1 | 62617s
+  Wesley | Score: 0 | 62617s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 23 0D 80 82
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2284 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 25 09 E5 A8
+
+[SUCCESS] Final packet received.
+Packet Length: 184 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : bg_horseshoe
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 25 09 E5 A8
+
+[PLAYERS] Found 2 players.
+  loop | Score: 0 | 42828s
+  Buckshot | Score: 0 | 42828s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 25 09 E5 A8
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4863 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 3B FC 83 A8
+
+[SUCCESS] Final packet received.
+Packet Length: 193 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 4 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 3B FC 83 A8
+
+[PLAYERS] Found 4 players.
+  Tvoroshik | Score: 81 | 2705s
+  ツRENGOKツ | Score: 183 | 1290s
+  ✿Hello Kitty✿ | Score: 20 | 869s
+  ErBraciola | Score: 22 | 266s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 4 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 3B FC 83 A8
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 3A A0 37 1D
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 3A A0 37 1D
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 3A A0 37 1D
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: A3 BF 0D 7F
+
+[SUCCESS] Final packet received.
+Packet Length: 161 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : de_boston
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: A3 BF 0D 7F
+
+[PLAYERS] Found 8 players.
+  Calvin | Score: 1 | 62684s
+  Lester | Score: 0 | 62684s
+  Ferris | Score: 4 | 62684s
+  George | Score: 2 | 62684s
+  Frank | Score: 1 | 62684s
+  Ulysses | Score: 2 | 62684s
+  Niles | Score: 1 | 62684s
+  Wesley | Score: 1 | 62684s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: A3 BF 0D 7F
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2284 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 67 8E 15 85
+
+[SUCCESS] Final packet received.
+Packet Length: 184 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : bg_horseshoe
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 67 8E 15 85
+
+[PLAYERS] Found 2 players.
+  loop | Score: 0 | 42895s
+  Buckshot | Score: 0 | 42895s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 67 8E 15 85
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4871 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 19 E4 46 EC
+
+[SUCCESS] Final packet received.
+Packet Length: 193 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 4 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 19 E4 46 EC
+
+[PLAYERS] Found 4 players.
+  Tvoroshik | Score: 86 | 2772s
+  ツRENGOKツ | Score: 208 | 1357s
+  ✿Hello Kitty✿ | Score: 22 | 936s
+  ErBraciola | Score: 25 | 333s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 4 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 19 E4 46 EC
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 57 F3 67 80
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 57 F3 67 80
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 57 F3 67 80
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 2E E7 14 6D
+
+[SUCCESS] Final packet received.
+Packet Length: 161 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : de_boston
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 2E E7 14 6D
+
+[PLAYERS] Found 8 players.
+  Calvin | Score: 2 | 62750s
+  Lester | Score: 2 | 62750s
+  Ferris | Score: 6 | 62750s
+  George | Score: 2 | 62750s
+  Frank | Score: 1 | 62750s
+  Ulysses | Score: 2 | 62750s
+  Niles | Score: 1 | 62750s
+  Wesley | Score: 2 | 62750s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 2E E7 14 6D
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2284 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 8A CD 09 96
+
+[SUCCESS] Final packet received.
+Packet Length: 184 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : bg_horseshoe
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 8A CD 09 96
+
+[PLAYERS] Found 2 players.
+  loop | Score: 0 | 42961s
+  Buckshot | Score: 0 | 42961s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 8A CD 09 96
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4871 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: C5 46 B4 8C
+
+[SUCCESS] Final packet received.
+Packet Length: 193 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 4 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: C5 46 B4 8C
+
+[PLAYERS] Found 4 players.
+  Tvoroshik | Score: 86 | 2838s
+  ツRENGOKツ | Score: 215 | 1423s
+  ✿Hello Kitty✿ | Score: 22 | 1002s
+  ErBraciola | Score: 28 | 399s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 4 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: C5 46 B4 8C
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 36 A5 2F B5
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 36 A5 2F B5
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 36 A5 2F B5
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...
+
+=========================================
+         RELAY LOOP START
+=========================================
+
+[HEARTBEAT] Relay online.
+
+[QUEUE] Checking pending submissions...
+
+[INFO] Pending submissions: 0
+
+
+[MONITOR] Updating verified servers...
+[INFO] Active servers: 4
+
+[LIVE] Refreshing 2.56.99.191:27015
+
+[A2S] Querying 2.56.99.191:27015
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 9B 1E 54 73
+
+[SUCCESS] Final packet received.
+Packet Length: 161 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : =Team FoxTare= Europa
+MAP      : de_boston
+FOLDER   : cstrike
+GAME     : Counter-Strike: Source
+APP ID   : 240
+PLAYERS  : 8 / 32
+BOTS     : 8
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 1
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 9B 1E 54 73
+
+[PLAYERS] Found 8 players.
+  Calvin | Score: 4 | 62816s
+  Lester | Score: 3 | 62816s
+  Ferris | Score: 7 | 62816s
+  George | Score: 3 | 62816s
+  Frank | Score: 1 | 62816s
+  Ulysses | Score: 3 | 62816s
+  Niles | Score: 1 | 62816s
+  Wesley | Score: 2 | 62816s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 8 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 9B 1E 54 73
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 2284 bytes.
+[RULES] Found 105 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 105 rules.
+
+[LIVE] Refreshing 54.39.131.12:27218
+
+[A2S] Querying 54.39.131.12:27218
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 0B ED BC 7F
+
+[SUCCESS] Final packet received.
+Packet Length: 180 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : OGR Montreal | ogr-gaming.net
+MAP      : ctf_road
+FOLDER   : bg3
+GAME     : Battle Grounds III
+APP ID   : 0
+PLAYERS  : 2 / 41
+BOTS     : 2
+VAC      : 1
+VERSION  : 4630212
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 2
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 0B ED BC 7F
+
+[PLAYERS] Found 2 players.
+  Slingshot | Score: 1 | 43026s
+  Gunshot | Score: 0 | 43026s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 2 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 0B ED BC 7F
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 4863 bytes.
+[RULES] Found 220 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 220 rules.
+
+[LIVE] Refreshing 37.221.209.24:27020
+
+[A2S] Querying 37.221.209.24:27020
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 00 60 13 9B
+
+[SUCCESS] Final packet received.
+Packet Length: 193 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : [HU] egy jó öreg NMRIH fun szerver #02 | !guns | Late Spawn
+MAP      : nms_campblood
+FOLDER   : nmrih
+GAME     : No More Room in Hell
+APP ID   : 0
+PLAYERS  : 4 / 8
+BOTS     : 0
+VAC      : 1
+VERSION  : 1.1.4.2
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 4
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 00 60 13 9B
+
+[PLAYERS] Found 4 players.
+  Tvoroshik | Score: 92 | 2903s
+  ツRENGOKツ | Score: 232 | 1489s
+  ✿Hello Kitty✿ | Score: 27 | 1067s
+  ErBraciola | Score: 41 | 464s
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 4 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 00 60 13 9B
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1374 bytes.
+[RULES] Found 71 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 71 rules.
+
+[LIVE] Refreshing 74.91.123.66:27244
+
+[A2S] Querying 74.91.123.66:27244
+
+[INFO] Server requested challenge.
+[INFO] Challenge bytes: 4A 9D 43 44
+
+[SUCCESS] Final packet received.
+Packet Length: 125 bytes
+Packet Type:   0x49
+
+=========================================
+HOSTNAME : iKill4Kix's MYSTERIOUS sLAUGHTER HOUSE
+MAP      : dm_powerhouse
+FOLDER   : hl2mp
+GAME     : Half-Life 2 Deathmatch
+APP ID   : 320
+PLAYERS  : 0 / 16
+BOTS     : 0
+VAC      : 1
+VERSION  : 9540945
+=========================================
+
+[UPLOAD] Sending live data...
+[SUCCESS] Data stored.
+Server ID: 7
+
+[A2S_PLAYER] Querying player list...
+[INFO] Player challenge: 4A 9D 43 44
+
+[PLAYERS] Found 0 players.
+
+[UPLOAD] Sending player list...
+[SUCCESS] Stored 0 players.
+
+[A2S_RULES] Querying server rules...
+[INFO] Rules challenge: 4A 9D 43 44
+[INFO] Split rules packet detected.
+[INFO] Reassembled rules packet: 1439 bytes.
+[RULES] Found 75 rules.
+
+[UPLOAD] Sending rules...
+[SUCCESS] Stored 75 rules.
+
+=========================================
+       FEDERATION MASTER EXPORT
+=========================================
+
+[INFO] Export not implemented yet.
+[CLEANUP] Running memory cleanup...
+
+[SLEEP] Waiting 60 seconds...

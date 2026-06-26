@@ -1,0 +1,43 @@
+        ********************* 
+     *******************=--+**
+   ****=-=--------+****-***-**
+ ****=---#%---------=*+----+**
+ ***----=%%#----*@+---******* 
+***-----#%@*#**#%%----=****** 
+***-----%@@#*****#-----*****  
+***------***#%%**#-----****   
+***-----=*+++**+#%=----***    
+****---+#*+==++*#%@%--****    
+ ****--+*#*++**###---****     
+   ****-----------=****       
+    *******++++*******        
+       ************           
+[#]--------------------------[#]
+ -   Source Dedicated RELAY   - 
+ -     sourcemod plugin       - 
+ -  brought to you by dr.N0   - 
+[#]--------------------------[#]
+
+Software Information \_____________________
+This software has been tested with Windows Server 2019
+--------------------------------------------
+Package Information \_____________________
+Once you download the relay file system and/or Source Dedicated WATCHDOG
+you will find a relay folder. within the relay folder, starts the plugin
+file system entirely containing
+
+logs[empty]
+- watchdog_relay.ps1
+
+simply drop the relay/ folder anywhere on your virtual private server
+and run the watchdog_relay.ps1 file as administrator via power shell.
+---------------------
+a power shell console will open and immediately start querying 
+stored source engine dedicated server information submitted 
+to the watchdog master list relay system.
+---------------------
+your VPS will then use A2S Query handling to communicate with
+each server and relay it back to watchdogs master list system.
+becoming a relay node apart of the entire watchdog federation system
+
+for more information visit drn0.site.nfoservers.com
